@@ -1,0 +1,10 @@
+{% if tracking_id %}
+<script>
+  var tracking_queue = [];
+  var tracking_server = '{{ tracking_server }}';
+  var tracking_id = '{{ tracking_id }}';
+  var tracking_script = document.createElement('script');
+  tracking_script.src = tracking_server + '/static/tracking.js';
+  document.head.appendChild(tracking_script);
+</script>
+{% endif %}

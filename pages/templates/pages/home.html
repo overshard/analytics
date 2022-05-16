@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block extra_head %}
+{% include "includes/social.html" %}
+{% endblock %}
+
+
+{% block extra_css %}
+<link href="{% static 'pages.css' %}" rel="stylesheet">
+{% endblock %}
+
+
+{% block breadcrumbs %}
+<nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item active">Home</li>
+  </ol>
+</nav>
+{% endblock %}
+
+
+{% block main %}
+<div class="bg-dark mb-5 home-hero" style="--background-image: url({% static 'images/home-hero.webp' %});">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 offset-lg-3 col-sm-8 offset-sm-2 col-xs-12 offset-xs-0 text-center text-white">
+        <div class="mb-5">
+          <span class="badge bg-warning text-black">Alpha</span> Things are rapidly changing!
+        </div>
+        <h1 class="display-3 mb-5">Simple self-hosted analytics</h1>
+        <p class="mb-0">Made by <a href="https://isaacbythewood.com/" class="text-white">Isaac Bythewood</a>,
+          simple analytics for people who want to host their own and hack on it
+          a bit.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container mb-2">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card bg-primary text-white text-center mb-3">
+        <div class="card-body">
+          <div class="display-5">{{ total_properties }}</div>
+          <div class="h5">Total properties</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card bg-primary text-white text-center mb-3">
+        <div class="card-body">
+          <div class="display-5">{{ total_events }}</div>
+          <div class="h5">Total events</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card bg-primary text-white text-center mb-3">
+        <div class="card-body">
+          <div class="display-5">{{ first_event_created_at|date:"M j, Y" }}</div>
+          <div class="h5">First event logged</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-6 col-lg-4 mb-4">
+      <div class="card bg-light h-100">
+        <div class="card-body">
+          <h2 class="card-title h5">Open source</h2>
+          <p class="card-text">The source code is available on GitHub and is
+            published under the simplified BSD license, do what you want with
+            it.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4 mb-4">
+      <div class="card bg-light h-100">
+        <div class="card-body">
+          <h2 class="card-title h5">Privacy friendly</h2>
+          <p class="card-text">The analytics data is stored on whatever
+            hosting service you put it on. You can store as much, or as
+            little, data as you want.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4 mb-4">
+      <div class="card bg-light h-100">
+        <div class="card-body">
+          <h2 class="card-title h5">First class mobile support</h2>
+          <p class="card-text">A responsive design that should work across all
+            platforms.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

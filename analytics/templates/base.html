@@ -1,0 +1,105 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ title }}{% endblock %} · Analytics</title>
+  <meta name="description" content="{% block description %}{{ description }}{% endblock %}">
+  <link rel="canonical" href="{{ canonical }}">
+
+  {% if BASE_URL %}
+  <base href="{{ BASE_URL }}">
+  {% endif %}
+
+  {% block extra_head %}{% endblock %}
+
+  <link href="{% static 'base.css' %}" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+
+  {% include 'includes/tracking.html' %}
+</head>
+
+<body>
+  {% include 'includes/messages.html' %}
+
+  {% block nav %}
+  <nav class="navbar bg-primary d-print-none">
+    <div class="container">
+      <a class="navbar-brand text-white" href="/">
+        <span class="display-1 fs-4 text-white text-decoration-none text-uppercase my-0">Analytics</span>
+        <span class="badge bg-warning text-black" style="font-size: 0.6em;">Alpha</span>
+      </a>
+      {% if user.is_authenticated %}
+      <a href="/accounts/logout/" class="btn btn-sm btn-outline-light">
+        Logout
+      </a>
+      {% else %}
+      <a href="/accounts/login/" class="btn btn-sm btn-outline-light">
+        Login
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+  {% endblock %}
+
+  {% block breadcrumb_wrapper %}
+  <div class="bg-light py-2 d-print-none">
+    <div class="container">
+      {% block breadcrumbs %}{% endblock %}
+    </div>
+  </div>
+  {% endblock %}
+
+  <main>
+    {% block main %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="border-top py-5 mt-5 bg-dark text-light d-print-none">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="h5 text-muted mb-3 text-uppercase">Analytics</div>
+          <p>Made by <a href="https://isaacbythewood.com/" class="text-light">Isaac Bythewood</a>, simple analytics for people who want to host their own and hack on it a bit.</p>
+          <p>Absolutely no warranty or support will be provided, you've been warned.</p>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2 offset-lg-4">
+          <div class="h5 text-muted mb-3 text-uppercase">Pages</div>
+          <ul class="list-unstyled">
+            <li><a href="/" class="text-light text-decoration-none">Home</a></li>
+            <li><a href="/changelog/" class="text-light text-decoration-none">Changelog</a></li>
+            <li><a href="/documentation/" class="text-light text-decoration-none">Documentation</a></li>
+            <li><a href="/contact/" class="text-light text-decoration-none">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
+          <div class="h5 text-muted mb-3 text-uppercase">Accounts</div>
+          <ul class="list-unstyled">
+            {% if user.is_authenticated %}
+            <li><a href="/properties/" class="text-light text-decoration-none">Properties</a></li>
+            <li><a href="/accounts/profile/" class="text-light text-decoration-none">Profile</a></li>
+            <li><a href="/accounts/logout/" class="text-light text-decoration-none">Logout</a></li>
+            {% else %}
+            <li><a href="/accounts/login/" class="text-light text-decoration-none">Login</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+  {% endblock %}
+
+  <div id="cookie-warning" class="alert alert-danger border-danger alert-dismissible fade position-fixed bottom-0 start-0 m-3 p-2 d-flex flex-column flex-md-row align-items-md-center d-print-none" style="z-index: 1100;" role="alert">
+    We use cookies (and other similar technologies) to collect data to improve your experience.
+    <button type="button" class="btn btn-sm btn-success ms-md-2 mt-2 mt-md-0" data-bs-dismiss="alert" aria-label="Okay">Understood</button>
+  </div>
+
+  <div class="toast-container position-fixed bottom-0 start-0 p-3 mt-5"></div>
+
+  <script src="{% static 'base.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
