@@ -1,7 +1,7 @@
 # Analytics
 
-A simple self-hostable analytics service with a straightforward API to track
-events from any source.
+A self-hostable analytics service with a straightforward API to track events
+from any source.
 
 
 ## Motivation
