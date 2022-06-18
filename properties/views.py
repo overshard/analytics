@@ -14,7 +14,7 @@ from analytics.chromium import generate_pdf_from_html
 
 from . import queries as q
 from .forms import PropertyForm
-from .models import Event, Property
+from .models import Property
 
 
 def properties(request):
@@ -47,16 +47,6 @@ def property_delete(request, property_id):
     property_obj.delete()
     messages.success(request, "Property deleted successfully.")
     return redirect("properties")
-
-
-def live_property_events_all(request):
-    """
-    Returns JSON of the most recent event for all properties.
-    """
-
-    event = Event.objects.order_by("-created_at").values("event", "created_at").first()
-
-    return JsonResponse(event, safe=False)
 
 
 def adjust_custom_event_cards(request, property_id):

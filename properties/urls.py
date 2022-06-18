@@ -8,6 +8,5 @@ urlpatterns = [
     path('<uuid:property_id>/delete/', views.property_delete, name='property_delete'),
     path('<uuid:property_id>/cards/', views.adjust_custom_event_cards, name='adjust_custom_event_cards'),
     path('<uuid:property_id>/is-public/', views.adjust_is_public_property, name='adjust_is_public_property'),
-    path('events/live/', views.live_property_events_all, name='live_property_events_all'),
     path('', views.properties, name='properties'),
 ]
