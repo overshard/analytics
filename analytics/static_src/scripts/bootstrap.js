@@ -7,15 +7,14 @@ import Tooltip from "bootstrap/js/dist/tooltip";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 document.addEventListener("DOMContentLoaded", function () {
-  // enable bootstrap tooltips
   const tooltipTriggerList = document.querySelectorAll(
-    '[data-bs-toggle="tooltip"]'
+    "[data-bs-toggle='tooltip']"
   );
-  const tooltipList = [...tooltipTriggerList].map(
+
+  [...tooltipTriggerList].map(
     (tooltipTriggerEl) => new Tooltip(tooltipTriggerEl)
   );
 
-  // also make sure tooltips have help cursor
   tooltipTriggerList.forEach((tooltipTriggerEl) => {
     tooltipTriggerEl.style.cursor = "help";
   });
