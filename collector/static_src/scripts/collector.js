@@ -1,8 +1,8 @@
 /**
- * tracking.js
+ * colector.js
  *
- * Our basic tracking script that is added to all pages we want to track. This
- * sends back the following basic events:
+ * Our basic collector script that is added to all pages we want to collect.
+ * This sends back the following basic events:
  *
  * - session_start
  * - page_view
@@ -10,22 +10,22 @@
  * - scroll
  *
  * This will also send back custom events that are triggered by pushing data to
- * the tracking queue with an event name and then event data that are key-value
+ * the collectorQueue with an event name and then event data that are key-value
  * pairs.
  */
 
 (function() {
-  // get the tracking cookie as user_id, if it doesn't exist, create it
-  // set a tracking cookie with a random value and set it to expire in a year
+  // get the collector cookie as user_id, if it doesn't exist, create it
+  // set a collector cookie with a random value and set it to expire in a year
   function set_cookie(name, value, expires) {
     var d = new Date();
     d.setTime(d.getTime() + (expires * 24 * 60 * 60 * 1000));
-    var expires = "expires=" + d.toUTCString();
+    expires = "expires=" + d.toUTCString();
     document.cookie = name + "=" + value + "; " + expires + "; path=/";
   }
 
   function get_cookie(name) {
-    var name = name + "=";
+    name = name + "=";
     var ca = document.cookie.split(";");
     for (var i = 0; i < ca.length; i++) {
       var c = ca[i];
@@ -39,15 +39,15 @@
     return "";
   }
 
-  var tracking_user_id = get_cookie("tracking_user_id");
-  if (tracking_user_id === "") {
-    tracking_user_id = Math.floor(Math.random() * 1000000000);
-    set_cookie("tracking_user_id", tracking_user_id, 365);
-    tracking_queue.push({
-      tracking_id: tracking_id,
+  var collectorUserId = get_cookie("collectoruserid");
+  if (collectorUserId === "") {
+    collectorUserId = Math.floor(Math.random() * 1000000000);
+    set_cookie("collectoruserid", collectorUserId, 365);
+    window.collectorQueue.push({
+      collector_id: window.collectorId,
       event: "session_start",
       data: {
-        user_id: tracking_user_id,
+        user_id: collectorUserId,
         url: window.location.pathname,
         title: document.title,
         referrer: document.referrer,
@@ -61,18 +61,18 @@
     });
   }
 
-  window.tracking_queue = {
-    data: window.tracking_queue || [],
+  window.collectorQueue = {
+    data: window.collectorQueue || [],
     post: function() {
       for (var i = 0; i < this.data.length; i++) {
         var data = this.data[i];
-        if (!data.tracking_id) {
-          data.tracking_id = tracking_id;
+        if (!data.collectorId) {
+          data.collectorId = window.collectorId;
         }
         if (!data.user_id) {
-          data.user_id = tracking_user_id;
+          data.user_id = collectorUserId;
         }
-        fetch(window.tracking_server + "/track/", {
+        fetch(window.collectorServer + "/collect/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -102,11 +102,11 @@
   const query = parse_querystring(window.location.search.substring(1));
 
   // send a page view event
-  tracking_queue.push({
-    tracking_id: tracking_id,
+  window.collectorQueue.push({
+    collector_id: window.collectorId,
     event: "page_view",
     data: {
-      user_id: tracking_user_id,
+      user_id: collectorUserId,
       url: window.location.pathname,
       title: document.title,
       referrer: document.referrer,
@@ -118,11 +118,11 @@
 
   // send click and auxclick events
   document.addEventListener("click", function (event) {
-    tracking_queue.push({
-      tracking_id: tracking_id,
+    window.collectorQueue.push({
+      collector_id: window.collectorId,
       event: "click",
       data: {
-        user_id: tracking_user_id,
+        user_id: collectorUserId,
         url: window.location.pathname,
         title: document.title,
         x: event.clientX,
@@ -135,13 +135,13 @@
 
   // send scroll events, but only one per second
   var last_scroll_event = 0;
-  window.addEventListener("scroll", function (event) {
+  window.addEventListener("scroll", function () {
     if (new Date().getTime() - last_scroll_event > 1000) {
-      tracking_queue.push({
-        tracking_id: tracking_id,
+      window.collectorQueue.push({
+        collector_id: window.collectorId,
         event: "scroll",
         data: {
-          user_id: tracking_user_id,
+          user_id: collectorUserId,
           url: window.location.pathname,
           title: document.title,
         },
@@ -153,12 +153,12 @@
   // send page_leave events
   // add var for when the page was loaded
   var page_loaded = new Date().getTime();
-  window.addEventListener("beforeunload", function (event) {
-    tracking_queue.push({
-      tracking_id: tracking_id,
+  window.addEventListener("beforeunload", function () {
+    window.collectorQueue.push({
+      collector_id: window.collectorId,
       event: "page_leave",
       data: {
-        user_id: tracking_user_id,
+        user_id: collectorUserId,
         url: window.location.pathname,
         title: document.title,
         time_on_page: new Date().getTime() - page_loaded,

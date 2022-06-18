@@ -20,7 +20,7 @@
 }
 
 analytics.example.com {
-  handle /track/ {
+  handle /collect/ {
     @options {
       method OPTIONS
     }

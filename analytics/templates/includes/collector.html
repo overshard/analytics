@@ -1,0 +1,9 @@
+{% if collector_id %}
+<script>
+  (function(m,e,t,r,i,c,s){m.collectorQueue = m.collectorQueue || r;
+  m.collectorServer = c; m.collectorId = s; collectorScript = e.createElement(t);
+  collectorScript.src = c + i; e.head.appendChild(m.collectorScript);
+  })(window,document,'script',[],'/static/collector.js',
+  '{{ collector_server }}','{{ collector_id }}');
+</script>
+{% endif %}

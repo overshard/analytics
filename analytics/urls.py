@@ -7,14 +7,14 @@ from django.views.generic import TemplateView
 from accounts import urls as accounts_urls
 from pages import urls as pages_urls
 from properties import urls as properties_urls
-from tracking import urls as tracking_urls
+from collector import urls as collector_urls
 
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include(accounts_urls)),
     path("properties/", include(properties_urls)),
-    path("", include(tracking_urls)),
+    path("", include(collector_urls)),
     path("", include(pages_urls)),
 ]
 

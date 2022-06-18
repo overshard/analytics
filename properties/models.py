@@ -59,7 +59,7 @@ class Property(models.Model):
 
 class Event(models.Model):
     """
-    An event that is sent by a site that we want to track. The most basic of
+    An event that is sent by a site that we want to collect. The most basic of
     events is a "page_view" event. All events can have a variety of key-value
     pairs sent along with them that we store in a JSONField.
 

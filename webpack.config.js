@@ -12,7 +12,7 @@ module.exports = {
     base: "./analytics/static_src/index.js",
     pages: "./pages/static_src/index.js",
     properties: "./properties/static_src/index.js",
-    tracking: "./tracking/static_src/index.js",
+    collector: "./collector/static_src/index.js",
   },
   output: {
     path: path.resolve(BASE_DIR, "analytics/static"),

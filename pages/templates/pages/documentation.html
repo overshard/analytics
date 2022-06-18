@@ -21,7 +21,7 @@
   <div class="row">
     <div class="col-lg-6 offset-lg-3 col-sm-8 offset-sm-2 col-xs-12 offset-xs-0">
       <h1>{{ title }}</h1>
-      <p>Some examples of how to use analytics to track various events on
+      <p>Some examples of how to use analytics to collect various events on
         websites, servers, and apps.</p>
     </div>
   </div>
@@ -31,35 +31,35 @@
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingOne">
             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-              Tracking custom clicks
+              Collect custom clicks
             </button>
           </h2>
           <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
             <div class="accordion-body">
-              <p>To track a custom click you can add the following to the anchor
+              <p>To collect a custom click you can add the following to the anchor
                 tag:</p>
-              <textarea class="form-control" rows="4" readonly>onclick="tracking_queue.push({event: 'custom_link_click_event_name'})"</textarea>
+              <textarea class="form-control" rows="4" readonly>onclick="collectorQueue.push({event: 'custom_link_click_event_name'})"</textarea>
             </div>
           </div>
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingTwo">
             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
-              Tracking custom page views
+              Collect custom page views
             </button>
           </h2>
           <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
             <div class="accordion-body">
-              <p>If you want to track a custom page view, like a successful
+              <p>If you want to collect a custom page view, like a successful
                 checkout on the invoice page, you can add anywhere on the page:</p>
-              <textarea class="form-control" rows="4" readonly><script>tracking_queue.push({event: 'custom_page_view_event_name'});</script></textarea>
+              <textarea class="form-control" rows="4" readonly><script>collectorQueue.push({event: 'custom_page_view_event_name'});</script></textarea>
             </div>
           </div>
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingThree">
             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-              Tracking custom data
+              Collect custom data
             </button>
           </h2>
           <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
@@ -67,7 +67,7 @@
               <p>All of our data gets stored in the database in a JSONField called
                 "data". If you want to send more details with events you can add
                 more data key-value pairs. As an example:</p>
-              <textarea class="form-control" rows="4" readonly><script>tracking_queue.push({event: 'admin_page_view', data: {user_segment: 'admins'}});</script></textarea>
+              <textarea class="form-control" rows="4" readonly><script>collectorQueue.push({event: 'admin_page_view', data: {user_segment: 'admins'}});</script></textarea>
             </div>
           </div>
         </div>
@@ -79,26 +79,26 @@
           </h2>
           <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionExample">
             <div class="accordion-body">
-              <p>You can technically track anything from anywhere by sending a
+              <p>You can technically collect anything from anywhere by sending a
                 POST request to the server with JSON data in the body. Make sure
-                you include a valid tracking_id, event, and data. As an
+                you include a valid collectorId, event, and data. As an
                 example:</p>
-              <textarea class="form-control" rows="4" readonly>curl -X POST -d '{"tracking_id": "PROPERTY_TRACKING_ID", "event": "custom_app_event", "data": { "app_id": "4" }}' YOUR_TRACKING_SERVER</textarea>
+              <textarea class="form-control" rows="4" readonly>curl -X POST -d '{"collector_id": "PROPERTY_COLLECTOR_ID", "event": "custom_app_event", "data": { "app_id": "4" }}' YOUR_COLLECTOR_SERVER</textarea>
             </div>
           </div>
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingFive">
             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="true" aria-controls="collapseFive">
-              Server side tracking
+              Server side events
             </button>
           </h2>
           <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#accordionExample">
             <div class="accordion-body">
-              <p>Sometimes you may want to track events from a server and you
+              <p>Sometimes you may want to collect events from a server and you
                 can send events using any http request library. For example, if
                 using "requests" on Python:</p>
-              <textarea class="form-control" rows="4" readonly>requests.post('YOUR_TRACKING_SERVER', json={'tracking_id': 'PROPERTY_TRACKING_ID', 'event': 'custom_app_event', 'data': { 'app_id': '4' }})</textarea>
+              <textarea class="form-control" rows="4" readonly>requests.post('YOUR_COLLECTOR_SERVER', json={'collector_id': 'PROPERTY_COLLECTOR_ID', 'event': 'custom_app_event', 'data': { 'app_id': '4' }})</textarea>
             </div>
           </div>
         </div>

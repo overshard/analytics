@@ -20,7 +20,7 @@ INSTALLED_APPS = [
 
     'accounts',
     'properties',
-    'tracking',
+    'collector',
     'pages',
 ]
 
@@ -51,7 +51,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
 
-                'analytics.context_processors.tracking',
+                'analytics.context_processors.collector',
                 'analytics.context_processors.canonical',
                 'analytics.context_processors.base_url',
             ],

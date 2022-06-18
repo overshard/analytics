@@ -108,7 +108,7 @@ def standard_event_cards(events_filtered, events_filtered_prev):
         "name": "Total user engagement",
         "value": f"{total_user_engagement}%",
         "percent_change": round((total_user_engagement - total_user_engagement_prev) / total_user_engagement_prev * 100) if total_user_engagement_prev else 0,
-        "help_text": "An engaged user is a user more than 10 events tracked for your selected date range.",
+        "help_text": "An engaged user is a user more than 10 events collected for your selected date range.",
     })
 
     try:

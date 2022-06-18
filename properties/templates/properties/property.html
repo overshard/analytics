@@ -47,7 +47,7 @@
           </form>
           {% endif %}
           {% if user.is_authenticated %}
-          <button type="button" class="btn btn-sm btn-primary ms-0 ms-lg-3 my-1" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="tracking_queue.push({event: 'see_site_tag'})">
+          <button type="button" class="btn btn-sm btn-primary ms-0 ms-lg-3 my-1" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="collectorQueue.push({event: 'see_site_tag'})">
             Get site tag
           </button>
           {% endif %}
@@ -55,7 +55,7 @@
             Generate report
           </a>
           {% if not property.is_protected and user.is_authenticated %}
-          <button type="button" class="btn btn-sm btn-outline-danger ms-1 ms-lg-3 my-1" data-bs-toggle="modal" data-bs-target="#delete-modal-{{ property.id }}" onclick="tracking_queue.push({event: 'delete_property'})">
+          <button type="button" class="btn btn-sm btn-outline-danger ms-1 ms-lg-3 my-1" data-bs-toggle="modal" data-bs-target="#delete-modal-{{ property.id }}" onclick="collectorQueue.push({event: 'delete_property'})">
             Delete
           </button>
           <div class="modal fade" id="delete-modal-{{ property.id }}" tabindex="-1" aria-labelledby="delete-modal-{{ property.id }}-label" aria-hidden="true">
@@ -306,12 +306,11 @@
       <div class="modal-body">
         <p>Add this to the <strong>&lt;head&gt;</strong> of your HTML file:</p>
 <textarea class="form-control" rows="8" readonly><script>
-  var tracking_queue = [];
-  var tracking_server = '{{ BASE_URL }}';
-  var tracking_id = '{{ property.id }}';
-  var tracking_script = document.createElement('script');
-  tracking_script.src = tracking_server + '/static/tracking.js';
-  document.head.appendChild(tracking_script);
+  (function(m,e,t,r,i,c,s){m.collectorQueue = m.collectorQueue || r;
+  m.collectorServer = c; m.collectorId = s; collectorScript = e.createElement(t);
+  collectorScript.src = c + i; e.head.appendChild(m.collectorScript);
+  })(window,document,'script',[],'/static/collector.js',
+  '{{ BASE_URL }}','{{ property.id }}');
 </script></textarea>
       </div>
     </div>

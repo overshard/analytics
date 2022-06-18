@@ -3,14 +3,14 @@ from django.conf import settings
 from properties.models import Property
 
 
-def tracking(request):
+def collector(request):
     """
     Gets the id of our "Proprium" property and sets it as a context variable
-    to be used to track ourselves.
+    to be used to collect metrics from ourselves.
     """
     try:
         prop = Property.objects.get(name='Proprium')
-        return {'tracking_server': settings.BASE_URL, 'tracking_id': prop.id}
+        return {'collector_server': settings.BASE_URL, 'collector_id': prop.id}
     except Property.DoesNotExist:
         return {}
 

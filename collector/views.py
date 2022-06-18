@@ -10,15 +10,15 @@ from properties.models import Event, Property
 
 
 @csrf_exempt
-def track(request):
+def collect(request):
     """
-    Processes tracking events sent to our server, stores them using Event for
+    Processes collector events sent to our server, stores them using Event for
     the relevant Site.
     """
     body = json.loads(request.body)
 
     try:
-        property_obj = Property.objects.get(id=body['tracking_id'])
+        property_obj = Property.objects.get(id=body['collectorId'])
     except Property.DoesNotExist:
         return HttpResponse(status=404)
 
@@ -79,7 +79,7 @@ def track(request):
     else:
         # If we don't have a user agent let's save just in case because it might
         # be a server side event or the latest chrome which sometimes doesn't
-        # have one. We do try to get userAgentData in our tracking.js too which
+        # have one. We do try to get userAgentData in our collector.js too which
         # gets auto set into the correct data attributes.
         event_obj.save()
 

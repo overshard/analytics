@@ -1,6 +1,6 @@
 # Analytics
 
-A self-hostable analytics service with a straightforward API to track events
+A self-hostable analytics service with a straightforward API to collect events
 from any source.
 
 
@@ -82,8 +82,8 @@ variables.
 ## Default user
 
 The default user is `admin` with the password `admin`. We also create an example
-property so you can see how the analytics look and a property to track
-ourselves.
+property so you can see how the analytics look and a property to collect metrics
+from ourselves.
 
 
 ## User location data
@@ -101,7 +101,7 @@ the data.
 
 This platform could easily be replaced with any platform you like, if you search
 the codebase for "ipinfo" you can find and replace as needed. Also, if you strip
-out all location tracking information this project still runs just fine.
+out all location collecting information this project still runs just fine.
 
 What to add to your `.env` file:
 
