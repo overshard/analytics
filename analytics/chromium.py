@@ -74,6 +74,7 @@ def generate_screenshot_from_url(url, filename):
     tempfilename = f"{uuid.uuid4()}.png"
     run_chromium_command(f"--screenshot={tempfilename} {url}")
     save_tempfile_to_storage(tempfilename, filename)
+    return default_storage.url(filename)
 
 
 def generate_screenshot_from_html(html, filename):
@@ -90,6 +91,7 @@ def generate_screenshot_from_html(html, filename):
     tempfilename_path = "file://" + os.path.join(os.getcwd(), tempfilename)
     run_chromium_command(f"--screenshot={tempfilename} {tempfilename_path}")
     save_tempfile_to_storage(tempfilename, filename)
+    return default_storage.url(filename)
 
 
 def generate_pdf_from_url(url, filename):
@@ -99,9 +101,10 @@ def generate_pdf_from_url(url, filename):
     :param url: The url to screenshot
     :param filename: The output file to save the screenshot to
     """
-    tempfilename = f"{uuid.uuid4()}.png"
+    tempfilename = f"{uuid.uuid4()}.pdf"
     run_chromium_command(f"--print-to-pdf-no-header --print-to-pdf={tempfilename} {url}")
     save_tempfile_to_storage(tempfilename, filename)
+    return default_storage.url(filename)
 
 
 def generate_pdf_from_html(html, filename):
@@ -117,3 +120,4 @@ def generate_pdf_from_html(html, filename):
     tempfilename_path = "file://" + os.path.join(os.getcwd(), tempfilename)
     run_chromium_command(f"--print-to-pdf-no-header --print-to-pdf={tempfilename} {tempfilename_path}")
     save_tempfile_to_storage(tempfilename, filename)
+    return default_storage.url(filename)
