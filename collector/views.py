@@ -34,7 +34,7 @@ def collect(request):
         # Some urls have a query string, some have a fragment, some have more
         # need to strip everything before the protocol and after the tld
         # ex. "http://example.com/foo?bar=baz#frag" -> "example.com"
-        event_obj.data['referrer'] = event_obj.data['referrer'].split('://')[-1].split('/')[0].lower()
+        event_obj.data['referrer'] = event_obj.data['referrer'].split('://')[-1].split('/')[0].lower().replace('www.', '')
 
     # If we have a settings.IPINFO_TOKEN then use requests with the request IP
     # to get the users country, region, city, and loc. Store this in the data.
