@@ -1,18 +1,16 @@
-# A docker compose file to run an analytics server
-#
-# We need to make sure the db.sqlite3 database is stored on the host machine
-# to maintain the data across rebuilds.
-
 version: "3"
 
 services:
   web:
-    container_name: analytics
+    container_name: analytics_web
     build: .
     env_file: .env
     volumes:
       - /srv/data/analytics/:/data/
     ports:
       - "${PORT}:${PORT}"
-    command: gunicorn analytics.asgi:application --worker-class uvicorn.workers.UvicornWorker --workers 4 --bind :${PORT} --log-file - --access-logfile - --error-logfile -
+    command: >
+      gunicorn analytics.asgi:application --workers 4 --max-requests 256
+      --timeout 30 --bind :${PORT} --worker-class uvicorn.workers.UvicornWorker
+      --log-file -
     restart: always
