@@ -139,9 +139,6 @@ I allow my local ISP's range because I have a DHCP lease from them and I get
 tired of logging into my server from my hosting provider's UI to update it. It's
 good enough security and much better than nothing!
 
-#!/bin/sh
-apk upgrade --update | sed "s/^/[`date`] /" >> /var/log/apk-autoupgrade.log
-
 Server:
 
     apk update && apk upgrade && apk add docker docker-compose caddy git iptables ip6tables ufw
