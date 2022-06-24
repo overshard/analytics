@@ -13,4 +13,4 @@ services:
       gunicorn analytics.asgi:application --workers 2 --max-requests 256
       --timeout 30 --bind :${PORT} --worker-class uvicorn.workers.UvicornWorker
       --log-file -
-    restart: always
+    restart: unless-stopped
