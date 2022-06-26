@@ -50,10 +50,10 @@
           <button type="button" class="btn btn-sm btn-primary ms-0 ms-lg-3 my-1" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="collectorQueue.push({event: 'see_site_tag'})">
             Get site tag
           </button>
-          {% endif %}
           <a href="{% url 'property' property.id %}?report" target="_blank" class="btn btn-sm btn-primary ms-0 ms-lg-3 my-1">
             Generate report
           </a>
+          {% endif %}
           {% if not property.is_protected and user.is_authenticated %}
           <button type="button" class="btn btn-sm btn-outline-danger ms-1 ms-lg-3 my-1" data-bs-toggle="modal" data-bs-target="#delete-modal-{{ property.id }}" onclick="collectorQueue.push({event: 'delete_property'})">
             Delete
