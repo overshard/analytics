@@ -214,7 +214,7 @@ def property(request, property_id):
                 "count": event["count"],
             }
         )
-    context["total_events_by_screen_size"] = total_events_by_screen_size
+    context["total_events_by_screen_size"] = total_events_by_screen_size[:7]
 
     #
     # Total events by device graph
@@ -232,7 +232,7 @@ def property(request, property_id):
             total_events_by_device.append(
                 {"label": event["data__device"], "count": event["count"]}
             )
-    context["total_events_by_device"] = total_events_by_device
+    context["total_events_by_device"] = total_events_by_device[:7]
 
     #
     # Total events by browser graph
@@ -250,7 +250,7 @@ def property(request, property_id):
             total_events_by_browser.append(
                 {"label": event["data__browser"], "count": event["count"]}
             )
-    context["total_events_by_browser"] = total_events_by_browser
+    context["total_events_by_browser"] = total_events_by_browser[:7]
 
     #
     # Total events by platform graph
@@ -268,7 +268,7 @@ def property(request, property_id):
             total_events_by_platform.append(
                 {"label": event["data__platform"], "count": event["count"]}
             )
-    context["total_events_by_platform"] = total_events_by_platform
+    context["total_events_by_platform"] = total_events_by_platform[:7]
 
     #
     # Total events by page url list
