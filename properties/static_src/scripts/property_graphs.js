@@ -126,6 +126,9 @@ document.addEventListener("DOMContentLoaded", function () {
     options: {
       responsive: true,
       aspectRatio: 2,
+      animation: {
+        animateRotate: false,
+      },
       plugins: {
         legend: {
           position: "right",
@@ -170,6 +173,9 @@ document.addEventListener("DOMContentLoaded", function () {
     options: {
       responsive: true,
       aspectRatio: 2,
+      animation: {
+        animateRotate: false,
+      },
       plugins: {
         legend: {
           position: "right",
@@ -214,6 +220,9 @@ document.addEventListener("DOMContentLoaded", function () {
     options: {
       responsive: true,
       aspectRatio: 2,
+      animation: {
+        animateRotate: false,
+      },
       plugins: {
         legend: {
           position: "right",
@@ -258,6 +267,9 @@ document.addEventListener("DOMContentLoaded", function () {
     options: {
       responsive: true,
       aspectRatio: 2,
+      animation: {
+        animateRotate: false,
+      },
       plugins: {
         legend: {
           position: "right",
