@@ -140,7 +140,7 @@
       <div class="col-6 col-md-6 col-lg-4 col-xl-3 text-center mb-1 mb-md-3 mt-0">
         <div class="card bg-primary text-white">
           {% if event_card.help_text %}
-          <span class="badge bg-warning rounded-pill position-absolute bottom-0 end-0 m-1 d-none d-md-inline" data-bs-placement="bottom" data-bs-toggle="tooltip" title="{{ event_card.help_text }}">?</span>
+          <span class="badge bg-warning text-dark rounded-pill position-absolute bottom-0 end-0 m-1 d-none d-md-inline" data-bs-placement="bottom" data-bs-toggle="tooltip" title="{{ event_card.help_text }}">?</span>
           {% endif %}
           <span class="badge {% if event_card.percent_change|make_list|first == '-' %}bg-danger{% else %}bg-success{% endif %} position-absolute top-0 end-0 m-1 d-none d-md-inline">{{ event_card.percent_change }}%</span>
           <div class="card-body display-5 p-0">
