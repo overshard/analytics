@@ -95,11 +95,8 @@ to my projects or if I need to add maybe a CDN/caching/server to a new region.
 
 For that reason I've added a simple way to enable or disable location data. I
 don't want to store user IPs so location data isn't retroactive. If you want to
-eanble IP address lookups you can download one of many free IP address databases
-like:
-
-- [maxmind.com](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data)
-- [db-ip.com](https://db-ip.com/db/download/ip-to-city-lite)
+enable IP address lookups you can download a free or paid one from MaxMind on
+[maxmind.com](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data).
 
 Once you get a database drop it into the `data` directory on your server and
 name it `db.mmdb`. Note that we are only using the binary database, not the
@@ -107,6 +104,8 @@ CSV database.
 
 Once added then we'll automatically start recording location data but leave out
 the IP address and any directly identifiable information.
+
+You can configure the database path in settings.
 
 
 ## Backups
