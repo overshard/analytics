@@ -9,7 +9,7 @@ def collector(request):
     to be used to collect metrics from ourselves.
     """
     try:
-        prop = Property.objects.get(name='Proprium')
+        prop = Property.objects.get(name='Proprium') or Property.objects.get(name='analytics.bythewood.me')
         return {'collector_server': settings.BASE_URL, 'collector_id': prop.id}
     except Property.DoesNotExist:
         return {}

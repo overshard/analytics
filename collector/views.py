@@ -1,9 +1,10 @@
 import json
 
-import requests
-from django.conf import settings
+from django.contrib.gis.geoip2 import GeoIP2
+from django.contrib.gis.geoip2.base import GeoIP2Exception
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from geoip2.errors import AddressNotFoundError
 from user_agents import parse as ua_parse
 
 from properties.models import Event, Property
@@ -36,21 +37,21 @@ def collect(request):
         # ex. "http://example.com/foo?bar=baz#frag" -> "example.com"
         event_obj.data['referrer'] = event_obj.data['referrer'].split('://')[-1].split('/')[0].lower().replace('www.', '')
 
-    # If we have a settings.IPINFO_TOKEN then use requests with the request IP
-    # to get the users country, region, city, and loc. Store this in the data.
-    if event_obj.event == 'session_start' and settings.IPINFO_TOKEN and settings.IPINFO_TOKEN != "":
-        # Check HTTP_X_FORWARDED_FOR first item after split , for the client IP
-        # if it exists else use REMOTE_ADDR
-        ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR')).split(',')[0]
-        if ip != '127.0.0.1':
-            url = f'https://ipinfo.io/{ip}?token={settings.IPINFO_TOKEN}'
-            response = requests.get(url)
-            if response.status_code == 200:
-                data = response.json()
-                event_obj.data['country'] = data.get('country', None)
-                event_obj.data['region'] = data.get('region', None)
-                event_obj.data['city'] = data.get('city', None)
-                event_obj.data['loc'] = data.get('loc', None)
+    try:
+        if event_obj.event == 'session_start':
+            # Check HTTP_X_FORWARDED_FOR first item after split , for the client IP
+            # if it exists else use REMOTE_ADDR
+            ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR')).split(',')[0]
+            if ip != '127.0.0.1':
+                g = GeoIP2()
+                g_data = g.city(ip)
+                if g_data:
+                    event_obj.data['country'] = g_data['country_code']
+                    event_obj.data['region'] = g_data['region']
+                    event_obj.data['city'] = g_data['city']
+                    event_obj.data['loc'] = [g_data['latitude'], g_data['longitude']]
+    except (GeoIP2Exception, AddressNotFoundError):
+        pass
 
     # If we have a "user_agent" in "data" then parse it and store the results in
     # data under "platform", "device" and "browser".

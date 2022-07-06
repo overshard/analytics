@@ -42,3 +42,9 @@ DATABASES = {
 # https://docs.djangoproject.com/en/4.0/ref/settings/#media-root
 
 MEDIA_URL = BASE_URL + '/media/'
+
+
+# GeoIP2
+# https://docs.djangoproject.com/en/4.0/ref/contrib/gis/geoip2/#std-setting-GEOIP_PATH
+
+GEOIP_PATH = BASE_DIR / 'db.mmdb'

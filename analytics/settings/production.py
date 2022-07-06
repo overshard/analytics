@@ -75,3 +75,9 @@ LOGGING = {
         "level": "WARNING",
     },
 }
+
+
+# GeoIP2
+# https://docs.djangoproject.com/en/4.0/ref/contrib/gis/geoip2/#std-setting-GEOIP_PATH
+
+GEOIP_PATH = "/data/db.mmdb"

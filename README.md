@@ -94,18 +94,19 @@ are coming from region wise. This helps me know if I need to add translations
 to my projects or if I need to add maybe a CDN/caching/server to a new region.
 
 For that reason I've added a simple way to enable or disable location data. I
-don't want to store user IPs so location data isn't retroactive but if you add
-a new environmental variable for an [ipinfo.io](https://ipinfo.io/) API token
-we start logging location data based on IP then throw out the IP and only keep
-the data.
+don't want to store user IPs so location data isn't retroactive. If you want to
+eanble IP address lookups you can download one of many free IP address databases
+like:
 
-This platform could easily be replaced with any platform you like, if you search
-the codebase for "ipinfo" you can find and replace as needed. Also, if you strip
-out all location collecting information this project still runs just fine.
+- [maxmind.com](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data)
+- [db-ip.com](https://db-ip.com/db/download/ip-to-city-lite)
 
-What to add to your `.env` file:
+Once you get a database drop it into the `data` directory on your server and
+name it `db.mmdb`. Note that we are only using the binary database, not the
+CSV database.
 
-    IPINFO_TOKEN=<your ipinfo.io token>
+Once added then we'll automatically start recording location data but leave out
+the IP address and any directly identifiable information.
 
 
 ## Backups

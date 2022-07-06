@@ -482,6 +482,10 @@ def property(request, property_id):
             total_session_starts_by_region_chart_data[us_states[region["label"]]] = {
                 "numberOfThings": region["count"]
             }
+        elif region["label"] in us_states.values():
+            total_session_starts_by_region_chart_data[region["label"]] = {
+                "numberOfThings": region["count"]
+            }
     context[
         "total_session_starts_by_region_chart_data"
     ] = total_session_starts_by_region_chart_data

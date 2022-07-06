@@ -11,6 +11,7 @@ tzdata = "*"  # Fixes "zoneinfo._common.ZoneInfoNotFoundError" on docker server
 user-agents = "*"
 uvicorn = "*"
 whitenoise = "*"
+geoip2 = "*"
 
 [dev-packages]
 black = "*"
