@@ -32,7 +32,22 @@ def properties(request):
     else:
         form = PropertyForm()
 
-    return render(request, "properties/properties.html", {"form": form, "title": "Properties", "description": "Manage your properties."})
+    properties = request.user.properties.all()
+    q = request.GET.get("q", None)
+    if q:
+        properties = properties.filter(name__icontains=q)
+
+    return render(
+        request,
+        "properties/properties.html",
+        {
+            "form": form,
+            "title": "Properties",
+            "description": "Manage your properties.",
+            "properties": properties,
+            "q": q,
+        },
+    )
 
 
 def property_delete(request, property_id):
@@ -105,9 +120,9 @@ def property(request, property_id):
         return redirect("properties")
 
     # Set some basic page context variables
-    context['title'] = property_obj.name
-    context['description'] = 'Analytics for ' + property_obj.name
-    context['BASE_URL'] = settings.BASE_URL
+    context["title"] = property_obj.name
+    context["description"] = "Analytics for " + property_obj.name
+    context["BASE_URL"] = settings.BASE_URL
 
     # Date range filter which defaults to 28 days if nothing is selected
     date_start = request.GET.get(
@@ -122,10 +137,14 @@ def property(request, property_id):
     context["date_range"] = date_range
 
     date_start_obj = timezone.datetime.strptime(date_start, "%Y-%m-%d")
-    date_end_obj = timezone.datetime.strptime(date_end, "%Y-%m-%d") + timezone.timedelta(hours=23, minutes=59, seconds=59)
+    date_end_obj = timezone.datetime.strptime(
+        date_end, "%Y-%m-%d"
+    ) + timezone.timedelta(hours=23, minutes=59, seconds=59)
 
     # Set the timezone
-    date_start_obj = timezone.make_aware(date_start_obj, timezone.get_current_timezone())
+    date_start_obj = timezone.make_aware(
+        date_start_obj, timezone.get_current_timezone()
+    )
     date_end_obj = timezone.make_aware(date_end_obj, timezone.get_current_timezone())
 
     if date_range == "custom":
@@ -150,7 +169,9 @@ def property(request, property_id):
 
     event_cards = []
     event_cards.extend(q.standard_event_cards(events_filtered, events_filtered_prev))
-    custom_event_cards, custom_events = q.custom_event_cards(property_obj, events_filtered, events_filtered_prev)
+    custom_event_cards, custom_events = q.custom_event_cards(
+        property_obj, events_filtered, events_filtered_prev
+    )
     event_cards.extend(custom_event_cards)
     context["custom_events"] = custom_events
     context["event_cards"] = event_cards
@@ -176,7 +197,9 @@ def property(request, property_id):
         # group weeks sunday through saturday
         for week in range(date_range // 7):
             date = date_end_obj - timezone.timedelta(days=7 * week)
-            count = events_filtered.filter(created_at__gte=date, created_at__lte=date + timezone.timedelta(days=6)).count()
+            count = events_filtered.filter(
+                created_at__gte=date, created_at__lte=date + timezone.timedelta(days=6)
+            ).count()
             total_events_by_week.append({"label": date, "count": count})
         context["total_events_graph"] = sorted(
             total_events_by_week, key=lambda k: k["label"]
@@ -186,7 +209,9 @@ def property(request, property_id):
         # group months 1 through 31
         for month in range(date_range // 28):
             date = date_end_obj - timezone.timedelta(days=28 * month)
-            count = events_filtered.filter(created_at__gte=date, created_at__lte=date + timezone.timedelta(days=27)).count()
+            count = events_filtered.filter(
+                created_at__gte=date, created_at__lte=date + timezone.timedelta(days=27)
+            ).count()
             total_events_by_month.append({"label": date, "count": count})
         context["total_events_graph"] = sorted(
             total_events_by_month, key=lambda k: k["label"]
@@ -351,7 +376,10 @@ def property(request, property_id):
         .annotate(count=models.Count("data__utm_medium"))
         .order_by("-count")[:10]
     ):
-        if utm_medium["data__utm_medium"] != "" and utm_medium["data__utm_medium"] is not None:
+        if (
+            utm_medium["data__utm_medium"] != ""
+            and utm_medium["data__utm_medium"] is not None
+        ):
             total_page_views_by_utm_medium.append(
                 {"label": utm_medium["data__utm_medium"], "count": utm_medium["count"]}
             )
@@ -369,7 +397,10 @@ def property(request, property_id):
         .annotate(count=models.Count("data__utm_source"))
         .order_by("-count")[:10]
     ):
-        if utm_source["data__utm_source"] != "" and utm_source["data__utm_source"] is not None:
+        if (
+            utm_source["data__utm_source"] != ""
+            and utm_source["data__utm_source"] is not None
+        ):
             total_page_views_by_utm_source.append(
                 {"label": utm_source["data__utm_source"], "count": utm_source["count"]}
             )
@@ -387,9 +418,15 @@ def property(request, property_id):
         .annotate(count=models.Count("data__utm_campaign"))
         .order_by("-count")[:10]
     ):
-        if utm_campaign["data__utm_campaign"] != "" and utm_campaign["data__utm_campaign"] is not None:
+        if (
+            utm_campaign["data__utm_campaign"] != ""
+            and utm_campaign["data__utm_campaign"] is not None
+        ):
             total_page_views_by_utm_campaign.append(
-                {"label": utm_campaign["data__utm_campaign"], "count": utm_campaign["count"]}
+                {
+                    "label": utm_campaign["data__utm_campaign"],
+                    "count": utm_campaign["count"],
+                }
             )
     context["total_page_views_by_utm_campaign"] = total_page_views_by_utm_campaign
 

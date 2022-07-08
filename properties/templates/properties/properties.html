@@ -13,15 +13,87 @@
 
 {% block main %}
 <div class="container">
-  <div class="row my-5">
-    <div class="col">
+  <div class="row my-3 d-flex align-items-center">
+    <div class="col-sm-6">
       <h1>{{ title }}</h1>
-      <p>All properties you've created.</p>
-      {% for property in user.properties.all %}
+      <p>All properties you've created; green indicates healthy traffic, red indicates no traffic.</p>
+    </div>
+    <div class="col-sm-6">
+      <form method="get" class="d-flex">
+        <div class="form-floating flex-grow-1 rounded-0 rounded-start">
+          <input type="text" class="form-control" name="q" id="id_search" placeholder="Search" {% if q %}value="{{ q }}"{% endif %} autofocus />
+          <label for="id_search" class="form-label">Search</label>
+        </div>
+        <button type="submit" class="btn btn-secondary px-3 rounded-0 rounded-end">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+          </svg>
+        </button>
+        <button class="btn btn-primary px-3 ms-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePropertyAdd" aria-expanded="false" aria-controls="collapsePropertyAdd">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-node-plus" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M11 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6.025 7.5a5 5 0 1 1 0 1H4A1.5 1.5 0 0 1 2.5 10h-1A1.5 1.5 0 0 1 0 8.5v-1A1.5 1.5 0 0 1 1.5 6h1A1.5 1.5 0 0 1 4 7.5h2.025zM11 5a.5.5 0 0 1 .5.5v2h2a.5.5 0 0 1 0 1h-2v2a.5.5 0 0 1-1 0v-2h-2a.5.5 0 0 1 0-1h2v-2A.5.5 0 0 1 11 5zM1.5 7a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1z"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+  <div class="row mx-0 mb-3 bg-dark py-3 rounded border border-warning collapse" id="collapsePropertyAdd">
+    <div class="col-sm-6">
+      <h2 class="text-white">Create a new property</h2>
+      <p class="text-white">The name helps you identfy the property and can be anything you want.</p>
+      {{ form.errors }}
+      <form method="POST" class="d-flex">
+        {% csrf_token %}
+        <div class="flex-grow-1">
+          <div class="form-floating">
+            <input type="text" name="name" id="id_name" class="form-control {% if form.name.errors %}is-invalid{% endif %} rounded-0 rounded-start" placeholder="Name" required>
+            <label for="id_name">Name</label>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary px-3 rounded-0 rounded-end">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <div class="card mb-3 bg-secondary text-white">
+        <div class="row g-0">
+          <div class="col-6 offset-md-1 col-md-2 d-flex align-items-center">
+            <div class="card-body py-1">
+              <div class="card-title h3 mb-0">{{ user.total_properties }}</div>
+              <p class="card-text">Properties</p>
+            </div>
+          </div>
+          <div class="col-6 offset-md-3 col-md-2 d-flex align-items-center">
+            <div class="card-body py-1">
+              <div class="card-title h3 mb-0">{{ user.total_events }}</div>
+              <p class="card-text">Events</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-2 d-flex align-items-center">
+            <div class="card-body py-1">
+              <div class="card-title h3 mb-0">{{ user.total_page_views }}</div>
+              <p class="card-text">Page views</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-2 d-flex align-items-center">
+            <div class="card-body py-1">
+              <div class="card-title h3 mb-0">{{ user.total_session_starts }}</div>
+              <p class="card-text">Session starts</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% for property in properties %}
         <div class="card mb-3 bg-light">
           <div class="row g-0">
             <div class="col-sm-1">
-              <!-- if property.is_active is true then show a bg-success else show bg-danger -->
               <div class="w-100 h-100 rounded-start {% if property.is_active %}bg-success{% else %}bg-danger{% endif %}"></div>
             </div>
             <div class="col-12 col-md-5">
@@ -73,52 +145,6 @@
           </div>
         </div>
       {% endfor %}
-      <div class="card mb-3 bg-secondary text-white">
-        <div class="row g-0">
-          <div class="col-6 offset-md-1 col-md-2 d-flex align-items-center">
-            <div class="card-body py-1">
-              <div class="card-title h3 mb-0">{{ user.total_properties }}</div>
-              <p class="card-text">Properties</p>
-            </div>
-          </div>
-          <div class="col-6 offset-md-3 col-md-2 d-flex align-items-center">
-            <div class="card-body py-1">
-              <div class="card-title h3 mb-0">{{ user.total_events }}</div>
-              <p class="card-text">Events</p>
-            </div>
-          </div>
-          <div class="col-6 col-md-2 d-flex align-items-center">
-            <div class="card-body py-1">
-              <div class="card-title h3 mb-0">{{ user.total_page_views }}</div>
-              <p class="card-text">Page views</p>
-            </div>
-          </div>
-          <div class="col-6 col-md-2 d-flex align-items-center">
-            <div class="card-body py-1">
-              <div class="card-title h3 mb-0">{{ user.total_session_starts }}</div>
-              <p class="card-text">Session starts</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row my-5">
-    <div class="col">
-      <h2>Create a new property</h2>
-      <p>The name helps you, the URL helps us.</p>
-      <form method="POST" class="row">
-        {% csrf_token %}
-        <div class="col-12 col-md-6 mb-3">
-          <div class="form-floating">
-            <input type="text" name="name" id="id_name" class="form-control {% if form.name.errors %}is-invalid{% endif %}" placeholder="Name" required>
-            <label for="id_name">Name</label>
-          </div>
-        </div>
-        <div class="col-12 col-md-2 d-flex align-items-center mb-3">
-          <button type="submit" class="btn btn-primary btn-lg h-100 px-5">Create</button>
-        </div>
-      </form>
     </div>
   </div>
 </div>
