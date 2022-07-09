@@ -62,9 +62,9 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <div class="card mb-3 bg-secondary text-white">
+      <div class="card bg-secondary text-white rounded-0 rounded-top">
         <div class="row g-0">
-          <div class="col-6 offset-md-1 col-md-2 d-flex align-items-center">
+          <div class="col-6 col-md-3 d-flex align-items-center">
             <div class="card-body py-1">
               <div class="card-title h3 mb-0">{{ user.total_properties }}</div>
               <p class="card-text">Properties</p>
@@ -91,14 +91,11 @@
         </div>
       </div>
       {% for property in properties %}
-        <div class="card mb-3 bg-light">
+        <div class="card border-0">
           <div class="row g-0">
-            <div class="col-sm-1">
-              <div class="w-100 h-100 rounded-start {% if property.is_active %}bg-success{% else %}bg-danger{% endif %}"></div>
-            </div>
-            <div class="col-12 col-md-5">
-              <div class="card-body">
-                <h2 class="card-title">{{ property.name }}</h2>
+            <div class="col-12 col-md-6 bg-dark">
+              <div class="card-body py-2">
+                <h2 class="card-title text-white h3">{{ property.name }}</h2>
                 <a href="{% url 'property' property.id %}" class="btn btn-sm px-4 btn-primary" onclick="collectorQueue.push({event: 'view_property'})">View</a>
                 {% if not property.is_protected %}
                 <button type="button" class="btn btn-sm px-4 btn-outline-danger" data-bs-toggle="modal" data-bs-target="#delete-modal-{{ property.id }}" onclick="collectorQueue.push({event: 'delete_property'})">
@@ -124,21 +121,21 @@
                 {% endif %}
               </div>
             </div>
-            <div class="col-6 col-md-2 d-flex align-items-center">
-              <div class="card-body">
-                <div class="card-title h2">{{ property.total_events }}</div>
+            <div class="col-6 col-md-2 d-flex align-items-center {% if property.is_active %}bg-success{% else %}bg-danger{% endif %} text-white">
+              <div class="card-body py-2">
+                <div class="card-title h3">{{ property.total_events }}</div>
                 <p class="card-text text-truncate">Events</p>
               </div>
             </div>
-            <div class="col-6 col-md-2 d-flex align-items-center">
-              <div class="card-body">
-                <div class="card-title h2">{{ property.total_page_views }}</div>
+            <div class="col-6 col-md-2 d-flex align-items-center {% if property.is_active %}bg-success{% else %}bg-danger{% endif %} text-white">
+              <div class="card-body py-2">
+                <div class="card-title h3">{{ property.total_page_views }}</div>
                 <p class="card-text text-truncate">Page views</p>
               </div>
             </div>
-            <div class="col-6 col-md-2 d-none d-md-flex d-flex align-items-center">
-              <div class="card-body">
-                <div class="card-title h2">{{ property.total_session_starts }}</div>
+            <div class="col-6 col-md-2 d-none d-md-flex d-flex align-items-center {% if property.is_active %}bg-success{% else %}bg-danger{% endif %} text-white">
+              <div class="card-body py-2">
+                <div class="card-title h3">{{ property.total_session_starts }}</div>
                 <p class="card-text text-truncate">Session starts</p>
               </div>
             </div>
