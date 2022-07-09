@@ -6,7 +6,6 @@ from . import views
 urlpatterns = [
     path('documentation/', views.documentation, name='documentation'),
     path('changelog/', views.changelog, name='changelog'),
-    path('contact/', views.contact, name='contact'),
     path('favicon.ico', views.favicon, name='favicon'),
     path('robots.txt', views.robots, name='robots'),
     path('sitemap.xml', views.sitemap, name='sitemap'),
