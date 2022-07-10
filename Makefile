@@ -71,7 +71,7 @@ pull:
 	git pull
 	rsync -avz $(SERVER_URL):/srv/data/analytics/db/db.sqlite3 db.sqlite3
 	rsync -avz $(SERVER_URL):/srv/data/analytics/db.mmdb db.mmdb
-	rsync -avz $(SERVER_URL):/srv/data/analytics/media media
+	rsync -avz $(SERVER_URL):/srv/data/analytics/media/ media
 	@echo "> all files copied"
 
 
