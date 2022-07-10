@@ -12,7 +12,7 @@ FROM alpine:3.16
 RUN apk add --update --no-cache \
       sqlite \
       python3 py3-pip \
-      nodejs yarn \
+      nodejs npm yarn \
       chromium libstdc++ nss harfbuzz freetype font-noto font-noto-extra font-noto-emoji && \
     pip install --upgrade pipenv
 
