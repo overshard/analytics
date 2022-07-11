@@ -54,6 +54,9 @@ document.addEventListener("DOMContentLoaded", function () {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        duration: 0,
+      },
       plugins: {
         tooltip: {
           mode: "index",

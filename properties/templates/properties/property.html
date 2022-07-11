@@ -2,6 +2,11 @@
 {% load static %}
 
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'properties.css' %}">
+{% endblock %}
+
+
 {% block extra_js %}
 {{ total_events_graph|json_script:"chart-total-events-data" }}
 {{ total_events_by_browser|json_script:"chart-total-events-by-browser-data" }}
@@ -165,7 +170,7 @@
         <div id="datamap"></div>
       </div>
     </div>
-    <div class="col-12 col-md-4">
+    <div id="doughnut-graphs" class="col-12 col-md-4">
       <div class="bg-light mb-4 p-2 rounded">
         <canvas id="chart-total-events-by-device"></canvas>
       </div>
@@ -180,7 +185,7 @@
       </div>
     </div>
   </div>
-  <div class="row justify-content-center">
+  <div id="top-lists" class="row justify-content-center">
     {% if total_page_views_by_page_url|length > 0 %}
     <div class="col-12 col-sm-6 col-lg-4 mb-5">
       <ol class="list-group">
