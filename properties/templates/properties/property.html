@@ -84,6 +84,15 @@
         </div>
       </div>
       <div class="col-12 col-lg-6 d-flex flex-column justify-content-end align-items-xl-end">
+        {% if filter_url %}
+        <div class="mb-2 d-flex align-items-center">
+          <span class="text-muted small me-2">Current filters</span>
+          <span class="badge bg-success d-flex align-items-center">
+            {{ filter_url }}
+            <button type="button" class="btn-filter-clear btn-close btn-sm text-white ms-2" data-filter-key="filter_url" data-filter-value="{{ filter_url }}"></button>
+          </span>
+        </div>
+        {% endif %}
         <form method="GET">
           <div class="row g-1">
             <div class="col-6 col-md-4">
@@ -195,7 +204,7 @@
         </li>
         {% for item in total_page_views_by_page_url %}
         <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <span class="text-truncate">{{ item.label }}</span>
+          <a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}" class="text-decoration-none text-dark"><span class="text-truncate">{{ item.label }}</span></a>
           <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
         </li>
         {% endfor %}
@@ -211,7 +220,7 @@
         </li>
         {% for item in total_events_by_page_url %}
         <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <span class="text-truncate">{{ item.label }}</span>
+          <a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}" class="text-decoration-none text-dark"><span class="text-truncate">{{ item.label }}</span></a>
           <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
         </li>
         {% endfor %}

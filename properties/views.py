@@ -157,6 +157,12 @@ def property(request, property_id):
         created_at__gte=date_start_obj, created_at__lte=date_end_obj
     )
 
+    # Get the filter_url and filter by data__url if filter_url exists
+    filter_url = request.GET.get("filter_url", None)
+    if filter_url:
+        events_filtered = events_filtered.filter(data__url=filter_url)
+        context['filter_url'] = filter_url
+
     # Get the previous period as well for comparisons
     date_start_obj_prev = date_start_obj - timezone.timedelta(days=date_range)
     date_end_obj_prev = date_end_obj - timezone.timedelta(days=date_range)
