@@ -1,6 +1,5 @@
-
-import Datamap from "datamaps";
 import { scaleLinear } from "d3-scale";
+import Datamap from "datamaps/dist/datamaps.all.min";
 
 document.addEventListener("DOMContentLoaded", function () {
   const datamapEl = document.getElementById("datamap");
