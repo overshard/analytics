@@ -204,7 +204,7 @@
         </li>
         {% for item in total_page_views_by_page_url %}
         <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}" class="text-decoration-none text-dark"><span class="text-truncate">{{ item.label }}</span></a>
+          <a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}" class="text-decoration-none text-dark text-truncate">{{ item.label }}</a>
           <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
         </li>
         {% endfor %}
@@ -220,7 +220,7 @@
         </li>
         {% for item in total_events_by_page_url %}
         <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}" class="text-decoration-none text-dark"><span class="text-truncate">{{ item.label }}</span></a>
+          <a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}" class="text-decoration-none text-dark text-truncate">{{ item.label }}</a>
           <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
         </li>
         {% endfor %}
