@@ -3,7 +3,7 @@ FROM alpine:3.16
 ENV LANG "C.UTF-8"
 
 RUN apk add --update --no-cache \
-      python3 py3-pip \
+      python3 py3-pip gdal \
       nodejs yarn \
       chromium libstdc++ nss harfbuzz freetype font-noto font-noto-extra font-noto-emoji && \
     pip install --upgrade pipenv
