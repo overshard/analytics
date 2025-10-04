@@ -34,7 +34,7 @@ dependencies:
 - pipenv
 - node
 - yarn
-- chromium
+- playwright (and remember to run `playwright install` for the Chromium browser)
 
 You can also check the `Dockerfile` for an exact list of dependencies and adjust
 package names for your desired platform.

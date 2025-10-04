@@ -1,11 +1,17 @@
 import json
 
-from django.contrib.gis.geoip2 import GeoIP2
-from django.contrib.gis.geoip2.base import GeoIP2Exception
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from geoip2.errors import AddressNotFoundError
 from user_agents import parse as ua_parse
+try:
+    from django.contrib.gis.geoip2 import GeoIP2, GeoIP2Exception
+except ImportError:  # GeoIP2 dependencies are optional
+    GeoIP2 = None
+
+    class GeoIP2Exception(Exception):
+        """Fallback exception when GeoIP2 isn't available."""
+
 
 from properties.models import Event, Property
 
@@ -38,7 +44,7 @@ def collect(request):
         event_obj.data['referrer'] = event_obj.data['referrer'].split('://')[-1].split('/')[0].lower().replace('www.', '')
 
     try:
-        if event_obj.event == 'session_start':
+        if event_obj.event == 'session_start' and GeoIP2 is not None:
             # Check HTTP_X_FORWARDED_FOR first item after split , for the client IP
             # if it exists else use REMOTE_ADDR
             ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR')).split(',')[0]

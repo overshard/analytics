@@ -10,7 +10,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from analytics.chromium import generate_pdf_from_html
+from analytics.playwright import generate_pdf_from_html
 
 from . import queries as q
 from .forms import PropertyForm

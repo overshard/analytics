@@ -10,7 +10,7 @@ from django.core.files.storage import default_storage
 from django.utils.html import format_html
 from django.utils import timezone
 
-from analytics.chromium import generate_screenshot_from_url
+from analytics.playwright import generate_screenshot_from_url
 
 register = template.Library()
 

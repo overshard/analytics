@@ -2,7 +2,7 @@
 # v. 2022.07.13
 
 
-.PHONY: run runserver webpack check clean push pull update
+.PHONY: run runserver webpack clean push pull update
 .DEFAULT: run
 
 
@@ -12,7 +12,7 @@ REQUIRED_PYTHON_VERSION = $(shell cat Pipfile | grep "^python_version " | cut -d
 PROJECT_NAME = $(shell basename $(PWD))
 
 
-run: check install
+run: install
 	@echo "run ----------------------------------------------------------------"
 	${MAKE} -j2 runserver webpack
 
@@ -22,28 +22,6 @@ runserver:
 webpack:
 	npx nodemon --watch webpack.config.js --exec \
 		'webpack --config webpack.config.js --mode development --watch --devtool source-map'
-
-
-check:
-	@echo "check --------------------------------------------------------------"
-	@if ! which pipenv > /dev/null; then\
-		echo "> pipenv not found in PATH, please make sure it's installed along with pyenv";\
-		echo "> see https://github.com/pyenv/pyenv and install the latest version of python";\
-		echo "> if you have docker installed you can use https://github.com/overshard/dockerfiles/blob/master/webdev/Dockerfile";\
-		exit 1;\
-	fi
-	@if ! which yarn > /dev/null; then\
-		echo "> yarn not found in PATH, please make sure it's installed along with node";\
-		echo "> see https://github.com/nvm-sh/nvm and install the latest version of node";\
-		echo "> if you have docker installed you can use https://github.com/overshard/dockerfiles/blob/master/webdev/Dockerfile";\
-		exit 1;\
-	fi
-	@if ! echo $(INSTALLED_PYTHON_VERSIONS) | grep -q $(REQUIRED_PYTHON_VERSION); then\
-		echo "> python $(REQUIRED_PYTHON_VERSION) not found in ~/.pyenv/versions";\
-		echo "> trying to install it for you via pyenv";\
-		pyenv install $(REQUIRED_PYTHON_VERSION);\
-	fi
-	@echo "> all checks passed"
 
 
 install: node_modules/touchfile .venv/touchfile db.sqlite3
