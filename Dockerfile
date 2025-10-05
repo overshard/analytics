@@ -48,7 +48,7 @@ ENV PATH="/app/.venv/bin:/app/node_modules/.bin:$PATH" \
 RUN webpack --config webpack.config.js --mode production && \
     python manage.py collectstatic --noinput
 
-RUN chown -R ubuntu:ubuntu /app \
+RUN chown -R ubuntu:ubuntu /app && \
     chown -R ubuntu:ubuntu "$PLAYWRIGHT_BROWSERS_PATH"
 
 USER ubuntu
