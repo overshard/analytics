@@ -6,8 +6,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        ca-certificates gdal-bin \
-        python3 python3-pip \
+    ca-certificates curl gdal-bin \
+    python3 python3-pip \
         # Playwright dependencies
         gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-base \
         gstreamer1.0-plugins-good libasound2t64 libatk-bridge2.0-0t64 \
@@ -27,7 +27,7 @@ RUN apt-get update && \
         libxslt1.1 libxss1 libxtst6 libxi6 libxshmfence1 xvfb \
         fonts-freefont-ttf fonts-liberation fonts-noto fonts-noto-color-emoji && \
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
-    apt-get install -y --no-install-recommends nodejs npm && \
+    apt-get install -y --no-install-recommends nodejs && \
     npm install -g yarn@1.22.22 && \
     pip3 install --no-cache-dir --break-system-packages pipenv && \
     rm -rf /var/lib/apt/lists/*
