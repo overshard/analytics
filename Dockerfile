@@ -2,7 +2,8 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
-    PIPENV_VENV_IN_PROJECT=1
+    PIPENV_VENV_IN_PROJECT=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -36,6 +37,7 @@ WORKDIR /app
 COPY Pipfile Pipfile.lock package.json yarn.lock /app/
 RUN yarn install --frozen-lockfile && \
     pipenv install --deploy && \
+    mkdir -p "$PLAYWRIGHT_BROWSERS_PATH" && \
     pipenv run playwright install chromium
 
 COPY . .
@@ -46,6 +48,7 @@ ENV PATH="/app/.venv/bin:/app/node_modules/.bin:$PATH" \
 RUN webpack --config webpack.config.js --mode production && \
     python manage.py collectstatic --noinput
 
-RUN chown -R ubuntu:ubuntu /app
+RUN chown -R ubuntu:ubuntu /app \
+    chown -R ubuntu:ubuntu "$PLAYWRIGHT_BROWSERS_PATH"
 
 USER ubuntu
