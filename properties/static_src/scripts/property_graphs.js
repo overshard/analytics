@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
       },
       scales: {
-        xAxes: {
+        x: {
           ticks: {
             autoSkip: true,
             maxTicksLimit: 10,
@@ -86,9 +86,9 @@ document.addEventListener("DOMContentLoaded", function () {
             maxRotation: 0,
           },
         },
-        yAxes: {
+        y: {
+          beginAtZero: true,
           ticks: {
-            beginAtZero: true,
             font: {
               size: 12,
               family: fontStack,

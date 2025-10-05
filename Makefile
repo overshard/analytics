@@ -20,8 +20,7 @@ runserver:
 	pipenv run python manage.py runserver
 
 webpack:
-	npx nodemon --watch webpack.config.js --exec \
-		'webpack --config webpack.config.js --mode development --watch --devtool source-map'
+	npx webpack --config webpack.config.js --mode development --watch --devtool source-map
 
 
 install: node_modules/touchfile .venv/touchfile db.sqlite3

@@ -22,17 +22,46 @@ def collect(request):
     Processes collector events sent to our server, stores them using Event for
     the relevant Site.
     """
-    body = json.loads(request.body)
+    if request.method == 'OPTIONS':
+        response = HttpResponse(status=204)
+        response['Allow'] = 'OPTIONS, POST'
+        response['Access-Control-Allow-Methods'] = 'OPTIONS, POST'
+        response['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers', 'Content-Type')
+        response['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+        return response
+
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    raw_body = request.body
+
+    if not raw_body:
+        return HttpResponse(status=400)
 
     try:
-        property_obj = Property.objects.get(id=body['collectorId'])
+        body = json.loads(raw_body)
+    except json.JSONDecodeError:
+        return HttpResponse(status=400)
+
+    collector_id = body.get('collectorId')
+    event_name = body.get('event')
+
+    if collector_id is None or event_name is None:
+        return HttpResponse(status=400)
+
+    try:
+        property_obj = Property.objects.get(id=collector_id)
     except Property.DoesNotExist:
         return HttpResponse(status=404)
 
+    event_data = body.get('data', {})
+    if not isinstance(event_data, dict):
+        return HttpResponse(status=400)
+
     event_obj = Event(
         property=property_obj,
-        event=body['event'],
-        data=body.get('data', {}),
+        event=event_name,
+        data=event_data,
     )
 
     # If we have a data__referrer then strip the url down to just the hostname
