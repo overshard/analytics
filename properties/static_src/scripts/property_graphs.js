@@ -135,6 +135,10 @@ document.addEventListener("DOMContentLoaded", function () {
         animateRotate: false,
       },
       plugins: {
+        tooltip: {
+          titleFont: { family: fontStack },
+          bodyFont: { family: fontStack },
+        },
         legend: {
           position: "right",
           labels: {
@@ -182,6 +186,10 @@ document.addEventListener("DOMContentLoaded", function () {
         animateRotate: false,
       },
       plugins: {
+        tooltip: {
+          titleFont: { family: fontStack },
+          bodyFont: { family: fontStack },
+        },
         legend: {
           position: "right",
           labels: {
@@ -229,6 +237,10 @@ document.addEventListener("DOMContentLoaded", function () {
         animateRotate: false,
       },
       plugins: {
+        tooltip: {
+          titleFont: { family: fontStack },
+          bodyFont: { family: fontStack },
+        },
         legend: {
           position: "right",
           labels: {
@@ -276,6 +288,10 @@ document.addEventListener("DOMContentLoaded", function () {
         animateRotate: false,
       },
       plugins: {
+        tooltip: {
+          titleFont: { family: fontStack },
+          bodyFont: { family: fontStack },
+        },
         legend: {
           position: "right",
           labels: {
