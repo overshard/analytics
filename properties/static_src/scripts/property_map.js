@@ -33,8 +33,8 @@ document.addEventListener("DOMContentLoaded", function () {
       popupTemplate: function (geo, data) {
         const count = data && data.numberOfThings != null ? data.numberOfThings : 0;
         return (`
-          <div style="position:relative;padding:4px 10px;background:rgba(0,0,0,0.85);color:#fff;border-radius:4px;font-size:0.875rem;white-space:nowrap;pointer-events:none;">
-            <strong style="display:block;">${geo.properties.name}</strong>
+          <div style="position:relative;padding:4px 10px;background:rgba(0,0,0,0.85);color:#fff;-webkit-text-fill-color:#fff;border-radius:4px;font-size:0.875rem;white-space:nowrap;pointer-events:none;">
+            <span style="display:block;font-weight:bold;">${geo.properties.name}</span>
             ${count} session start${count === 1 ? "" : "s"}
           </div>
         `);
