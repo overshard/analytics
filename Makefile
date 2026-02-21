@@ -6,7 +6,7 @@
 .DEFAULT: run
 
 
-SERVER_URL = $(shell git config --get remote.origin.url | cut -d ':' -f 1)
+SERVER_URL = $(shell git config --get remote.server.url | sed 's|ssh://||' | cut -d ':' -f 1 | cut -d '/' -f 1)
 INSTALLED_PYTHON_VERSIONS = $(shell ls ~/.pyenv/versions/)
 REQUIRED_PYTHON_VERSION = $(shell cat Pipfile | grep "^python_version " | cut -d '"' -f 2)
 PROJECT_NAME = $(shell basename $(PWD))
@@ -59,7 +59,7 @@ pull:
 update: install
 	@echo "update -------------------------------------------------------------"
 	pipenv update
-	yarn upgrade
+	yarn upgrade --latest
 	@echo "> all deps updated"
 
 
