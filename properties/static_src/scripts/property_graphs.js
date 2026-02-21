@@ -61,6 +61,8 @@ document.addEventListener("DOMContentLoaded", function () {
         tooltip: {
           mode: "index",
           intersect: false,
+          titleFont: { family: fontStack },
+          bodyFont: { family: fontStack },
         },
         legend: {
           position: "top",

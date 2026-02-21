@@ -31,12 +31,11 @@ document.addEventListener("DOMContentLoaded", function () {
     geographyConfig: {
       highlightFillColor: "#0d6efd",
       popupTemplate: function (geo, data) {
+        const count = data && data.numberOfThings != null ? data.numberOfThings : 0;
         return (`
-          <div class="tooltip show" role="tooltip">
-            <div class="tooltip-inner text-nowrap">
-              <strong class="d-block">${geo.properties.name}</strong>
-              ${data.numberOfThings} session start${data.numberOfThings === 1 ? "" : "s"}
-            </div>
+          <div style="position:relative;padding:4px 10px;background:rgba(0,0,0,0.85);color:#fff;border-radius:4px;font-size:0.875rem;white-space:nowrap;pointer-events:none;">
+            <strong style="display:block;">${geo.properties.name}</strong>
+            ${count} session start${count === 1 ? "" : "s"}
           </div>
         `);
       },
