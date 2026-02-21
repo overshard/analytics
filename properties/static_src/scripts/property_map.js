@@ -31,11 +31,12 @@ document.addEventListener("DOMContentLoaded", function () {
     geographyConfig: {
       highlightFillColor: "#0d6efd",
       popupTemplate: function (geo, data) {
-        const count = data && data.numberOfThings != null ? data.numberOfThings : 0;
+        if (!data || data.numberOfThings == null) return "";
+        const count = data.numberOfThings;
         return (`
-          <div style="position:relative;padding:4px 10px;background:rgba(0,0,0,0.85);color:#fff;-webkit-text-fill-color:#fff;border-radius:4px;font-size:0.875rem;white-space:nowrap;pointer-events:none;">
-            <span style="display:block;font-weight:bold;">${geo.properties.name}</span>
-            ${count} session start${count === 1 ? "" : "s"}
+          <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;line-height:1.4;padding:4px 10px;background:rgba(0,0,0,0.9);border-radius:4px;font-size:14px;white-space:nowrap;pointer-events:none;">
+            <span style="display:block;font-weight:bold;color:#fff;-webkit-text-fill-color:#fff;">${geo.properties.name}</span>
+            <span style="color:#fff;-webkit-text-fill-color:#fff;">${count} session start${count === 1 ? "" : "s"}</span>
           </div>
         `);
       },
