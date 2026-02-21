@@ -2,5 +2,6 @@
 /media
 /node_modules
 /db.sqlite3
+/db.mmdb
 /analytics/static
 /.env
