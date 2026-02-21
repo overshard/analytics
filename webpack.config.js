@@ -20,8 +20,8 @@ module.exports = {
   optimization: {
     minimize: true,
     minimizer: [
-      new CssMinimizerPlugin(),
-      new TerserPlugin(),
+      new CssMinimizerPlugin({ parallel: false }),
+      new TerserPlugin({ parallel: false }),
     ],
   },
   plugins: [
