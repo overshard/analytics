@@ -45,7 +45,7 @@ COPY . .
 ENV PATH="/app/.venv/bin:/app/node_modules/.bin:$PATH" \
     PYTHONPATH="/app/.venv/lib/python3.12/site-packages:$PYTHONPATH"
 
-RUN webpack --config webpack.config.js --mode production && \
+RUN NODE_OPTIONS="--max-old-space-size=2048" webpack --config webpack.config.js --mode production && \
     python manage.py collectstatic --noinput
 
 RUN chown -R ubuntu:ubuntu /app && \
