@@ -6,7 +6,7 @@ services:
     volumes:
       - /srv/data/analytics/:/data/
     ports:
-      - "${PORT}:${PORT}"
+      - "127.0.0.1:${PORT}:${PORT}"
     command: >
       gunicorn analytics.asgi:application --preload --workers 2 --max-requests 256
       --timeout 30 --bind :${PORT} --worker-class uvicorn.workers.UvicornWorker
