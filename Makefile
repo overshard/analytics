@@ -7,8 +7,6 @@
 
 
 SERVER_URL = $(shell git config --get remote.server.url | sed 's|ssh://||' | cut -d ':' -f 1 | cut -d '/' -f 1)
-INSTALLED_PYTHON_VERSIONS = $(shell ls ~/.pyenv/versions/)
-REQUIRED_PYTHON_VERSION = $(shell cat Pipfile | grep "^python_version " | cut -d '"' -f 2)
 PROJECT_NAME = $(shell basename $(PWD))
 
 
@@ -17,7 +15,7 @@ run: install
 	${MAKE} -j2 runserver webpack
 
 runserver:
-	pipenv run python manage.py runserver
+	uv run python manage.py runserver 0.0.0.0:8000
 
 webpack:
 	npx webpack --config webpack.config.js --mode development --watch --devtool source-map
@@ -31,16 +29,15 @@ node_modules/touchfile: package.json
 	touch $@
 	@echo "> all node deps installed"
 
-.venv/touchfile: Pipfile
+.venv/touchfile: pyproject.toml
 	@echo "install python deps ------------------------------------------------"
-	mkdir -p .venv
-	pipenv install --dev
+	uv sync
 	touch $@
 	@echo "> all python deps installed"
 
 db.sqlite3:
 	@echo "create database ----------------------------------------------------"
-	pipenv run python manage.py migrate
+	uv run python manage.py migrate
 	@echo "> database created"
 
 
@@ -58,7 +55,7 @@ pull:
 
 update: install
 	@echo "update -------------------------------------------------------------"
-	pipenv update
+	uv lock --upgrade
 	yarn upgrade --latest
 	@echo "> all deps updated"
 

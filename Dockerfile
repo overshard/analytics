@@ -2,13 +2,15 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
-    PIPENV_VENV_IN_PROJECT=1 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates curl gdal-bin \
-    python3 python3-pip \
+    python3 python3-venv \
         # Playwright dependencies
         gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-base \
         gstreamer1.0-plugins-good libasound2t64 libatk-bridge2.0-0t64 \
@@ -30,20 +32,18 @@ RUN apt-get update && \
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     npm install -g yarn@1.22.22 && \
-    pip3 install --no-cache-dir --break-system-packages pipenv && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY Pipfile Pipfile.lock package.json yarn.lock /app/
+COPY pyproject.toml uv.lock package.json yarn.lock /app/
 RUN yarn install --frozen-lockfile && \
-    pipenv install --deploy && \
+    uv sync --frozen && \
     mkdir -p "$PLAYWRIGHT_BROWSERS_PATH" && \
-    pipenv run playwright install chromium
+    uv run playwright install chromium
 
 COPY . .
 
-ENV PATH="/app/.venv/bin:/app/node_modules/.bin:$PATH" \
-    PYTHONPATH="/app/.venv/lib/python3.12/site-packages:$PYTHONPATH"
+ENV PATH="/app/.venv/bin:/app/node_modules/.bin:$PATH"
 
 RUN webpack --config webpack.config.js --mode production && \
     python manage.py collectstatic --noinput

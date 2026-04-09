@@ -31,7 +31,7 @@ If you want to install things without docker then you'll need the following
 dependencies:
 
 - python
-- pipenv
+- uv
 - node
 - yarn
 - playwright (and remember to run `playwright install` for the Chromium browser)
@@ -55,14 +55,14 @@ everything.
 
 ## Checking outdated dependencies
 
-This can be done in both yarn and pipenv with the following two commands:
+This can be done in both yarn and uv with the following two commands:
 
-    pipenv update --outdated
+    uv lock --upgrade --dry-run
     yarn outdated
 
 You can then upgrade the outdated dependencies with the following two commands:
 
-    pipenv update
+    uv lock --upgrade && uv sync
     yarn upgrade
 
 I recommend testing everything after this to make sure it's all working.
