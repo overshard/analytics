@@ -1,8 +1,8 @@
-# Django + Webpack Makefile
+# Django + Vite Makefile
 # v. 2022.07.13
 
 
-.PHONY: run runserver webpack clean push pull update
+.PHONY: run runserver vite clean push pull update
 .DEFAULT: run
 
 
@@ -12,20 +12,20 @@ PROJECT_NAME = $(shell basename $(PWD))
 
 run: install
 	@echo "run ----------------------------------------------------------------"
-	${MAKE} -j2 runserver webpack
+	${MAKE} -j2 runserver vite
 
 runserver:
 	uv run python manage.py runserver 0.0.0.0:8000
 
-webpack:
-	npx webpack --config webpack.config.js --mode development --watch --devtool source-map
+vite:
+	bun run dev
 
 
 install: node_modules/touchfile .venv/touchfile db.sqlite3
 
 node_modules/touchfile: package.json
 	@echo "install node deps --------------------------------------------------"
-	yarn install
+	bun install
 	touch $@
 	@echo "> all node deps installed"
 
@@ -56,7 +56,7 @@ pull:
 update: install
 	@echo "update -------------------------------------------------------------"
 	uv lock --upgrade
-	yarn upgrade --latest
+	bun update --latest
 	@echo "> all deps updated"
 
 
