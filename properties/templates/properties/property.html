@@ -14,7 +14,7 @@
 {{ total_events_by_device|json_script:"chart-total-events-by-device-data" }}
 {{ total_events_by_platform|json_script:"chart-total-events-by-platform-data" }}
 {{ total_session_starts_by_region_chart_data|json_script:"chart-total-session-starts-by-region-data" }}
-<script src="{% static 'properties.js' %}"></script>
+<script type="module" src="{% static 'properties.js' %}"></script>
 {% endblock %}
 
 

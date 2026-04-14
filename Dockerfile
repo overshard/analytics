@@ -6,10 +6,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=oven/bun:latest /usr/local/bin/bun /usr/local/bin/bun
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    ca-certificates curl gdal-bin \
+    ca-certificates curl unzip gdal-bin \
     python3 python3-venv \
         # Playwright dependencies
         gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-base \
@@ -29,14 +30,11 @@ RUN apt-get update && \
         libxfixes3 libxinerama1 libxkbcommon0 libxml2 libxrandr2 libxrender1 \
         libxslt1.1 libxss1 libxtst6 libxi6 libxshmfence1 xvfb \
         fonts-freefont-ttf fonts-liberation fonts-noto fonts-noto-color-emoji && \
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
-    apt-get install -y --no-install-recommends nodejs && \
-    npm install -g yarn@1.22.22 && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY pyproject.toml uv.lock package.json yarn.lock /app/
-RUN yarn install --frozen-lockfile && \
+COPY pyproject.toml uv.lock package.json bun.lock /app/
+RUN bun install --frozen-lockfile && \
     uv sync --frozen && \
     mkdir -p "$PLAYWRIGHT_BROWSERS_PATH" && \
     uv run playwright install chromium
@@ -45,7 +43,7 @@ COPY . .
 
 ENV PATH="/app/.venv/bin:/app/node_modules/.bin:$PATH"
 
-RUN webpack --config webpack.config.js --mode production && \
+RUN bun run build && \
     python manage.py collectstatic --noinput
 
 RUN chown -R ubuntu:ubuntu /app && \
