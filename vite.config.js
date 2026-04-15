@@ -1,7 +1,19 @@
 import { resolve } from "path";
 import { defineConfig } from "vite";
 
+// datamaps pulls in d3 v3, whose IIFE reads `this.document` expecting the
+// global object. Under ESM/strict `this` is undefined, which crashes at load.
+const fixD3v3GlobalThis = {
+  name: "fix-d3-v3-global-this",
+  transform(code, id) {
+    if (id.includes("datamaps/node_modules/d3/d3.js")) {
+      return code.replace("this.document", "globalThis.document");
+    }
+  },
+};
+
 export default defineConfig({
+  plugins: [fixD3v3GlobalThis],
   build: {
     outDir: resolve(__dirname, "analytics/static"),
     emptyOutDir: true,
