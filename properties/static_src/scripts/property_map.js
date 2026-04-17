@@ -15,7 +15,11 @@ document.addEventListener("DOMContentLoaded", function () {
       max = data[region].numberOfThings;
     }
   }
-  const colorScale = scaleLinear().domain([0, max]).range(["#cfe2ff", "#031633"]);
+  // Warm-earth choropleth: faint green for low volume, bright green for the
+  // busiest states. Matches the rest of the dashboard palette.
+  const colorScale = scaleLinear()
+    .domain([0, max])
+    .range(["rgba(107, 158, 120, 0.12)", "rgba(125, 184, 140, 0.95)"]);
 
   for (const region in data) {
     data[region].fillColor = colorScale(data[region].numberOfThings);
@@ -26,17 +30,20 @@ document.addEventListener("DOMContentLoaded", function () {
     scope: "usa",
     responsive: true,
     fills: {
-      defaultFill: "rgba(108, 117, 125, 0.4)",
+      defaultFill: "rgba(107, 158, 120, 0.06)",
     },
     geographyConfig: {
-      highlightFillColor: "#0d6efd",
+      borderColor: "rgba(107, 158, 120, 0.18)",
+      borderWidth: 0.6,
+      highlightFillColor: "#c9a84c",
+      highlightBorderColor: "rgba(201, 168, 76, 0.6)",
       popupTemplate: function (geo, data) {
         if (!data || data.numberOfThings == null) return "";
         const count = data.numberOfThings;
         return (`
-          <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;line-height:1.4;padding:4px 10px;background:rgba(0,0,0,0.9);border-radius:4px;font-size:14px;white-space:nowrap;pointer-events:none;">
-            <span style="display:block;font-weight:bold;color:#fff;-webkit-text-fill-color:#fff;">${geo.properties.name}</span>
-            <span style="color:#fff;-webkit-text-fill-color:#fff;">${count} session start${count === 1 ? "" : "s"}</span>
+          <div style="font-family:'Monaspace Argon',ui-monospace,monospace;line-height:1.4;padding:6px 10px;background:#13120e;border:1px solid rgba(107, 158, 120, 0.3);border-radius:4px;font-size:12px;white-space:nowrap;pointer-events:none;color:#ddd7cd;">
+            <span style="display:block;font-weight:600;color:#ede8e0;-webkit-text-fill-color:#ede8e0;letter-spacing:0.02em;">${geo.properties.name}</span>
+            <span style="color:#c9a84c;-webkit-text-fill-color:#c9a84c;">${count} session${count === 1 ? "" : "s"}</span>
           </div>
         `);
       },

@@ -151,9 +151,28 @@
   });
 
   // send page_leave events
-  // add var for when the page was loaded
-  var page_loaded = new Date().getTime();
-  window.addEventListener("beforeunload", function () {
+  // Track only *visible* time so idle/background tabs don't inflate the metric.
+  // Accumulate elapsed time in chunks bounded by visibilitychange, then flush
+  // on pagehide (more reliable than beforeunload on Safari/mobile).
+  var visible_since = document.visibilityState === "visible" ? new Date().getTime() : null;
+  var visible_accumulated = 0;
+  var page_leave_sent = false;
+
+  document.addEventListener("visibilitychange", function () {
+    var now = new Date().getTime();
+    if (document.visibilityState === "hidden" && visible_since !== null) {
+      visible_accumulated += now - visible_since;
+      visible_since = null;
+    } else if (document.visibilityState === "visible" && visible_since === null) {
+      visible_since = now;
+    }
+  });
+
+  function send_page_leave() {
+    if (page_leave_sent) return;
+    page_leave_sent = true;
+    var now = new Date().getTime();
+    var time_on_page = visible_accumulated + (visible_since !== null ? now - visible_since : 0);
     window.collectorQueue.push({
       collector_id: window.collectorId,
       event: "page_leave",
@@ -161,8 +180,10 @@
         user_id: collectorUserId,
         url: window.location.pathname,
         title: document.title,
-        time_on_page: new Date().getTime() - page_loaded,
+        time_on_page: time_on_page,
       },
     });
-  });
+  }
+
+  window.addEventListener("pagehide", send_page_leave);
 })();

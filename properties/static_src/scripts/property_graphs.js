@@ -1,27 +1,52 @@
 import Chart from "chart.js/auto";
 
-const backgroundColors = [
-  "rgba(13, 110, 253, 0.4)",
-  "rgba(102, 16, 242, 0.4)",
-  "rgba(111, 66, 193, 0.4)",
-  "rgba(214, 51, 132, 0.4)",
-  "rgba(220, 53, 69, 0.4)",
-  "rgba(253, 126, 20, 0.4)",
-  "rgba(255, 193, 7, 0.4)",
-  "rgba(25, 135, 84, 0.4)",
-  "rgba(32, 201, 151, 0.4)",
-  "rgba(13, 202, 240, 0.4)",
+// Palette matches the warm-earth SCSS: mossy green primary, amber secondary,
+// terracotta accent, plus neutral earth tones for the longer tails of the
+// doughnut charts. Alpha-blended so adjacent segments stay readable.
+const palette = [
+  "rgba(107, 158, 120, 0.75)", // green
+  "rgba(201, 168, 76, 0.75)",  // amber
+  "rgba(196, 112, 85, 0.75)",  // terracotta
+  "rgba(126, 170, 184, 0.75)", // info blue-slate
+  "rgba(160, 152, 144, 0.75)", // warm grey
+  "rgba(125, 184, 140, 0.75)", // green bright
+  "rgba(221, 192, 106, 0.7)",  // amber bright
+  "rgba(216, 136, 112, 0.7)",  // terracotta bright
+  "rgba(132, 124, 114, 0.7)",  // gray-400
+  "rgba(196, 189, 178, 0.7)",  // gray-200
 ];
 
-const fontStack = 'Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace';
+const paletteBorders = palette.map((c) => c.replace(/0?\.\d+\)/, "1)"));
 
-// Get the max label length from all the datasets
+const fontStack = "'Monaspace Argon', ui-monospace, 'Cascadia Code', Consolas, monospace";
+
+// Common axis / grid styling for the dark theme.
+Chart.defaults.color = "rgba(221, 215, 205, 0.55)";
+Chart.defaults.borderColor = "rgba(107, 158, 120, 0.08)";
+Chart.defaults.font.family = fontStack;
+Chart.defaults.font.size = 11;
+
+const tooltipStyle = {
+  backgroundColor: "rgba(9, 8, 6, 0.95)",
+  borderColor: "rgba(107, 158, 120, 0.3)",
+  borderWidth: 1,
+  titleColor: "#ede8e0",
+  bodyColor: "#ddd7cd",
+  padding: 10,
+  titleFont: { family: fontStack, size: 12 },
+  bodyFont: { family: fontStack, size: 11 },
+  cornerRadius: 4,
+};
+
+// Normalize label widths across the four doughnut charts so their legends line
+// up in the sidebar. Pad with non-breaking spaces so monospace widths match.
 let maxLabelLength = 0;
 if (document.getElementById("chart-total-events-by-browser-data")) {
   const browserData = JSON.parse(document.getElementById("chart-total-events-by-browser-data").innerHTML);
   const deviceData = JSON.parse(document.getElementById("chart-total-events-by-device-data").innerHTML);
   const screenSizeData = JSON.parse(document.getElementById("chart-total-events-by-screen-size-data").innerHTML);
-  const allData = [...browserData, ...deviceData, ...screenSizeData];
+  const platformData = JSON.parse(document.getElementById("chart-total-events-by-platform-data").innerHTML);
+  const allData = [...browserData, ...deviceData, ...screenSizeData, ...platformData];
   for (let i = 0; i < allData.length; i++) {
     if (allData[i].label.length > maxLabelLength) {
       maxLabelLength = allData[i].label.length;
@@ -29,24 +54,85 @@ if (document.getElementById("chart-total-events-by-browser-data")) {
   }
 }
 
+function padLabels(data) {
+  for (let i = 0; i < data.length; i++) {
+    data[i].label = data[i].label + " ".repeat(Math.max(0, maxLabelLength - data[i].label.length));
+  }
+  return data;
+}
+
+const doughnutOptions = {
+  responsive: true,
+  aspectRatio: 1.8,
+  animation: { animateRotate: false },
+  cutout: "60%",
+  plugins: {
+    tooltip: tooltipStyle,
+    legend: {
+      position: "right",
+      labels: {
+        boxWidth: 8,
+        boxHeight: 8,
+        padding: 8,
+        color: "rgba(221, 215, 205, 0.7)",
+        font: { family: fontStack, size: 11 },
+      },
+    },
+  },
+};
+
+function renderDoughnut(canvasId, dataId) {
+  document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const raw = JSON.parse(document.getElementById(dataId).innerHTML);
+    const data = padLabels(raw);
+    new Chart(canvas.getContext("2d"), {
+      type: "doughnut",
+      data: {
+        labels: data.map((d) => d.label),
+        datasets: [
+          {
+            data: data.map((d) => d.count),
+            backgroundColor: palette,
+            borderColor: "rgba(14, 13, 10, 0.9)",
+            borderWidth: 2,
+          },
+        ],
+      },
+      options: doughnutOptions,
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   const canvas = document.getElementById("chart-total-events");
   if (!canvas) return;
-  const data = JSON.parse(
-    document.getElementById("chart-total-events-data").innerHTML
-  );
+  const data = JSON.parse(document.getElementById("chart-total-events-data").innerHTML);
   const ctx = canvas.getContext("2d");
-  const chart = new Chart(ctx, {
+
+  // Build a subtle vertical gradient fill so the line chart feels lit from
+  // below without washing out the dark surface.
+  const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+  gradient.addColorStop(0, "rgba(107, 158, 120, 0.35)");
+  gradient.addColorStop(1, "rgba(107, 158, 120, 0.01)");
+
+  new Chart(ctx, {
     type: "line",
     data: {
       labels: data.map((d) => d.label),
       datasets: [
         {
-          label: "Total events",
+          label: "events",
           data: data.map((d) => d.count),
-          backgroundColor: "rgba(13, 110, 253, 0.4)",
-          borderColor: "rgba(13, 110, 253, 0.8)",
-          borderWidth: 3,
+          backgroundColor: gradient,
+          borderColor: "rgba(125, 184, 140, 0.95)",
+          pointBackgroundColor: "rgba(125, 184, 140, 1)",
+          pointBorderColor: "rgba(14, 13, 10, 1)",
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          borderWidth: 2,
+          tension: 0.25,
           fill: true,
         },
       ],
@@ -54,26 +140,11 @@ document.addEventListener("DOMContentLoaded", function () {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      animation: {
-        duration: 0,
-      },
+      animation: { duration: 0 },
       plugins: {
-        tooltip: {
-          mode: "index",
-          intersect: false,
-          titleFont: { family: fontStack },
-          bodyFont: { family: fontStack },
-        },
+        tooltip: { ...tooltipStyle, mode: "index", intersect: false },
         legend: {
-          position: "top",
-          labels: {
-            boxWidth: 10,
-            boxHeight: 10,
-            font: {
-              size: 12,
-              family: fontStack,
-            },
-          },
+          display: false,
         },
       },
       scales: {
@@ -81,229 +152,28 @@ document.addEventListener("DOMContentLoaded", function () {
           ticks: {
             autoSkip: true,
             maxTicksLimit: 10,
-            font: {
-              size: 12,
-              family: fontStack,
-            },
             maxRotation: 0,
+            color: "rgba(132, 124, 114, 0.85)",
+            font: { family: fontStack, size: 10 },
           },
+          grid: { color: "rgba(107, 158, 120, 0.04)", drawTicks: false },
+          border: { color: "rgba(107, 158, 120, 0.12)" },
         },
         y: {
           beginAtZero: true,
           ticks: {
-            font: {
-              size: 12,
-              family: fontStack,
-            },
+            color: "rgba(132, 124, 114, 0.85)",
+            font: { family: fontStack, size: 10 },
           },
-        },
-      },
-    },
-  });
-  chart.canvas.parentNode.style.width = "100%";
-  chart.canvas.parentNode.style.height = "300px";
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  const canvas = document.getElementById("chart-total-events-by-browser");
-  if (!canvas) return;
-  const data = JSON.parse(
-    document.getElementById("chart-total-events-by-browser-data").innerHTML
-  );
-  // adjust labels to all be maxLabelLength by adding spaces to the end
-  for (let i = 0; i < data.length; i++) {
-    data[i].label = data[i].label + " ".repeat(maxLabelLength - data[i].label.length);
-  }
-  const ctx = canvas.getContext("2d");
-  new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: data.map((d) => d.label),
-      datasets: [
-        {
-          data: data.map((d) => d.count),
-          backgroundColor: backgroundColors,
-          borderColor: backgroundColors,
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      aspectRatio: 2,
-      animation: {
-        animateRotate: false,
-      },
-      plugins: {
-        tooltip: {
-          titleFont: { family: fontStack },
-          bodyFont: { family: fontStack },
-        },
-        legend: {
-          position: "right",
-          labels: {
-            boxWidth: 10,
-            boxHeight: 10,
-            font: {
-              size: 12,
-              family: fontStack,
-            },
-          },
+          grid: { color: "rgba(107, 158, 120, 0.06)", drawTicks: false },
+          border: { display: false },
         },
       },
     },
   });
 });
 
-document.addEventListener("DOMContentLoaded", function () {
-  const canvas = document.getElementById("chart-total-events-by-device");
-  if (!canvas) return;
-  const data = JSON.parse(
-    document.getElementById("chart-total-events-by-device-data").innerHTML
-  );
-  // adjust labels to all be maxLabelLength by adding spaces to the end
-  for (let i = 0; i < data.length; i++) {
-    data[i].label = data[i].label + " ".repeat(maxLabelLength - data[i].label.length);
-  }
-  const ctx = canvas.getContext("2d");
-  new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: data.map((d) => d.label),
-      datasets: [
-        {
-          data: data.map((d) => d.count),
-          backgroundColor: backgroundColors,
-          borderColor: backgroundColors,
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      aspectRatio: 2,
-      animation: {
-        animateRotate: false,
-      },
-      plugins: {
-        tooltip: {
-          titleFont: { family: fontStack },
-          bodyFont: { family: fontStack },
-        },
-        legend: {
-          position: "right",
-          labels: {
-            boxWidth: 10,
-            boxHeight: 10,
-            font: {
-              size: 12,
-              family: fontStack,
-            },
-          },
-        },
-      },
-    },
-  });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  const canvas = document.getElementById("chart-total-events-by-screen-size");
-  if (!canvas) return;
-  const data = JSON.parse(
-    document.getElementById("chart-total-events-by-screen-size-data").innerHTML
-  );
-  // adjust labels to all be maxLabelLength by adding spaces to the end
-  for (let i = 0; i < data.length; i++) {
-    data[i].label = data[i].label + " ".repeat(maxLabelLength - data[i].label.length);
-  }
-  const ctx = canvas.getContext("2d");
-  new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: data.map((d) => d.label),
-      datasets: [
-        {
-          data: data.map((d) => d.count),
-          backgroundColor: backgroundColors,
-          borderColor: backgroundColors,
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      aspectRatio: 2,
-      animation: {
-        animateRotate: false,
-      },
-      plugins: {
-        tooltip: {
-          titleFont: { family: fontStack },
-          bodyFont: { family: fontStack },
-        },
-        legend: {
-          position: "right",
-          labels: {
-            boxWidth: 10,
-            boxHeight: 10,
-            font: {
-              size: 12,
-              family: fontStack,
-            },
-          },
-        },
-      },
-    },
-  });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  const canvas = document.getElementById("chart-total-events-by-platform");
-  if (!canvas) return;
-  const data = JSON.parse(
-    document.getElementById("chart-total-events-by-platform-data").innerHTML
-  );
-  // adjust labels to all be maxLabelLength by adding spaces to the end
-  for (let i = 0; i < data.length; i++) {
-    data[i].label = data[i].label + " ".repeat(maxLabelLength - data[i].label.length);
-  }
-  const ctx = canvas.getContext("2d");
-  new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: data.map((d) => d.label),
-      datasets: [
-        {
-          data: data.map((d) => d.count),
-          backgroundColor: backgroundColors,
-          borderColor: backgroundColors,
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      aspectRatio: 2,
-      animation: {
-        animateRotate: false,
-      },
-      plugins: {
-        tooltip: {
-          titleFont: { family: fontStack },
-          bodyFont: { family: fontStack },
-        },
-        legend: {
-          position: "right",
-          labels: {
-            boxWidth: 10,
-            boxHeight: 10,
-            font: {
-              size: 12,
-              family: fontStack,
-            },
-          },
-        },
-      },
-    },
-  });
-});
+renderDoughnut("chart-total-events-by-browser", "chart-total-events-by-browser-data");
+renderDoughnut("chart-total-events-by-device", "chart-total-events-by-device-data");
+renderDoughnut("chart-total-events-by-screen-size", "chart-total-events-by-screen-size-data");
+renderDoughnut("chart-total-events-by-platform", "chart-total-events-by-platform-data");

@@ -1,15 +1,27 @@
 @media print {
   @page {
     size: A4;
+    margin: 12mm;
   }
 
   html, body {
     width: fit-content;
     height: fit-content;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .container {
     max-width: 100%;
+  }
+
+  .chart-panel {
+    page-break-inside: avoid;
   }
 
   #chart-total-events {
@@ -30,7 +42,8 @@
     margin-bottom: 0;
   }
 
-  .col-sm-6 {
+  #top-lists .col-12 {
     width: 50%;
+    page-break-inside: avoid;
   }
 }

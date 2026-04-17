@@ -19,7 +19,7 @@
 
 
 {% block breadcrumbs %}
-<nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+<nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="/">Home</a></li>
     <li class="breadcrumb-item"><a href="/properties/">Properties</a></li>
@@ -30,96 +30,91 @@
 
 
 {% block main %}
-<div class="bg-light py-2">
+<div class="bg-deep border-bottom border-subtle py-4">
   <div class="container">
-    <div class="row">
+    <div class="row align-items-center g-3">
       <div class="col-12 col-lg-6">
-        <div class="d-flex align-items-center">
-          <h1 class="me-3 display-5">{{ title }}</h1>
-          <div class="badge bg-secondary rounded-pill d-print-none">{{ total_live_users }} Live users</div>
-        </div>
-        <div class="d-lg-flex my-lg-0 d-print-none">
-          {% if user.is_authenticated %}
-          <form id="is-public-form" method="POST">
-            {% csrf_token %}
-            <div class="form-check form-switch my-1">
-              <input class="form-check-input" type="checkbox" role="switch" name="is_public" id="is-public-switch" {% if property.is_public %}checked{% endif %}>
-              <label class="form-check-label" for="{{ custom_event.event|slugify }}-switch">
-                <span class="badge bg-dark rounded-pill" data-bs-placement="bottom" data-bs-toggle="tooltip" title="Anyone with the URL will have access to this property, you can disable at anytime.">?</span>
-                Public Property
-              </label>
-            </div>
-          </form>
-          {% endif %}
-          {% if user.is_authenticated %}
-          <button type="button" class="btn btn-sm btn-primary ms-0 ms-lg-3 my-1" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="collectorQueue.push({event: 'see_site_tag'})">
-            Get site tag
-          </button>
-          <a href="{% url 'property' property.id %}?report" target="_blank" class="btn btn-sm btn-primary ms-0 ms-lg-3 my-1">
-            Generate report
-          </a>
-          {% endif %}
-          {% if not property.is_protected and user.is_authenticated %}
-          <button type="button" class="btn btn-sm btn-outline-danger ms-1 ms-lg-3 my-1" data-bs-toggle="modal" data-bs-target="#delete-modal-{{ property.id }}" onclick="collectorQueue.push({event: 'delete_property'})">
-            Delete
-          </button>
-          <div class="modal fade" id="delete-modal-{{ property.id }}" tabindex="-1" aria-labelledby="delete-modal-{{ property.id }}-label" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="delete-modal-{{ property.id }}-label">Confirm property delete</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                  Are you sure you want to delete <strong>{{ property.name }}</strong>?
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">I've changed my mind</button>
-                  <a href="{% url 'property_delete' property.id %}" class="btn btn-danger">Confirm</a>
-                </div>
+        <div class="section-label mb-2">property · <span class="text-green">{{ total_live_users }} live</span></div>
+        <h1 class="mb-1 text-white fw-bolder d-flex align-items-center gap-3" style="letter-spacing: -0.01em; min-width: 0;">
+          <span class="text-truncate">{{ property.name }}</span>
+          <span class="status-dot status-dot-lg {% if total_live_users %}is-up{% else %}is-idle{% endif %}" aria-hidden="true"></span>
+        </h1>
+        <div class="text-muted small" style="font-family: var(--bs-font-monospace);">{{ property.id }}</div>
+      </div>
+      <div class="col-12 col-lg-6 d-flex flex-wrap gap-2 justify-content-lg-end align-items-center d-print-none">
+        {% if user.is_authenticated %}
+        <form id="is-public-form" method="POST" class="d-inline-flex align-items-center gap-2">
+          {% csrf_token %}
+          <span class="toggle-label" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Public properties are viewable by anyone with the URL — no login required.">Visibility</span>
+          <label class="toggle-pill">
+            <input type="checkbox" name="is_public" id="is-public-switch" {% if property.is_public %}checked{% endif %}>
+            <span class="toggle-pill-seg toggle-pill-private">Private</span>
+            <span class="toggle-pill-seg toggle-pill-public">Public</span>
+          </label>
+        </form>
+        <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#siteTagModal" onclick="collectorQueue.push({event: 'see_site_tag'})">
+          Site tag
+        </button>
+        <a href="{% url 'property' property.id %}?report" target="_blank" class="btn btn-sm btn-outline-light">Report · pdf</a>
+        <a href="{% url 'property' property.id %}?report=md" target="_blank" class="btn btn-sm btn-outline-light">Report · md</a>
+        {% if not property.is_protected %}
+        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#delete-modal-{{ property.id }}" onclick="collectorQueue.push({event: 'delete_property'})">
+          Delete
+        </button>
+        <div class="modal fade" id="delete-modal-{{ property.id }}" tabindex="-1" aria-labelledby="delete-modal-{{ property.id }}-label" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title text-white" id="delete-modal-{{ property.id }}-label">Confirm delete</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                Delete <strong class="text-white">{{ property.name }}</strong>? All collected events will be removed.
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'property_delete' property.id %}" class="btn btn-outline-danger">Delete</a>
               </div>
             </div>
           </div>
-          {% endif %}
-        </div>
-      </div>
-      <div class="col-12 col-lg-6 d-flex flex-column justify-content-end align-items-xl-end">
-        {% if filter_url %}
-        <div class="mb-2 d-flex align-items-center">
-          <span class="text-muted small me-2">Current filters</span>
-          <span class="badge bg-success d-flex align-items-center">
-            {{ filter_url }}
-            <button type="button" class="btn-filter-clear btn-close btn-sm text-white ms-2" data-filter-key="filter_url" data-filter-value="{{ filter_url }}"></button>
-          </span>
         </div>
         {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="row mt-3 g-3 align-items-end d-print-none">
+      {% if filter_url %}
+      <div class="col-12">
+        <span class="filter-chip">
+          <span class="section-label" style="letter-spacing: 0.1em;">filter · url</span>
+          <span class="filter-chip-label">{{ filter_url }}</span>
+          <button type="button" class="filter-chip-clear btn-filter-clear" data-filter-key="filter_url" data-filter-value="{{ filter_url }}" aria-label="Clear filter">✕</button>
+        </span>
+      </div>
+      {% endif %}
+      <div class="col-12 col-lg-8 offset-lg-4">
         <form method="GET">
-          <div class="row g-1">
-            <div class="col-6 col-md-4">
-              <div class="form-floating">
-                <input type="date" name="date_start" id="date-start" class="form-control" value="{{ date_start|default:'' }}" />
-                <label for="date-start">Date start</label>
-              </div>
+          <div class="date-range-form">
+            <div class="form-floating">
+              <input type="date" name="date_start" id="date-start" class="form-control" value="{{ date_start|default:'' }}" />
+              <label for="date-start">Date start</label>
             </div>
-            <div class="col-6 col-md-4">
-              <div class="form-floating">
-                <input type="date" name="date_end" id="date-end" class="form-control" value="{{ date_end|default:'' }}" />
-                <label for="date-end">Date end</label>
-              </div>
+            <div class="form-floating">
+              <input type="date" name="date_end" id="date-end" class="form-control" value="{{ date_end|default:'' }}" />
+              <label for="date-end">Date end</label>
             </div>
-            <div class="col-12 col-md-4">
-              <div class="form-floating">
-                <select name="date_range" id="date-range" class="form-select">
-                  <option value="custom">Custom</option>
-                  <option value="7">7 days</option>
-                  <option value="14">14 days</option>
-                  <option value="28" selected>28 days</option>
-                  <option value="90">3 months</option>
-                  <option value="180">6 months</option>
-                  <option value="365">1 year</option>
-                </select>
-                <label for="date-range">Date range</label>
-              </div>
+            <div class="form-floating">
+              <select name="date_range" id="date-range" class="form-select">
+                <option value="custom">Custom</option>
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="28" selected>28 days</option>
+                <option value="90">3 months</option>
+                <option value="180">6 months</option>
+                <option value="365">1 year</option>
+              </select>
+              <label for="date-range">Date range</label>
             </div>
           </div>
         </form>
@@ -127,199 +122,258 @@
     </div>
   </div>
 </div>
-<div class="bg-dark py-5 position-relative">
-  {% if user.is_authenticated and custom_events|length > 0 %}
-  <div class="position-absolute top-0 end-0 p-2">
-    <div class="dropdown">
-      <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="customCards" data-bs-toggle="dropdown" aria-expanded="false">
+
+<div class="container my-4 position-relative">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="section-label">metrics · period vs previous</div>
+    {% if user.is_authenticated and custom_events|length > 0 %}
+    <div class="dropdown d-print-none">
+      <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="customCards" data-bs-toggle="dropdown" aria-expanded="false">
         Custom cards
       </button>
-      <div class="dropdown-menu p-3" style="width: 300px;" aria-labelledby="customCards">
+      <div class="dropdown-menu dropdown-menu-end p-3" style="width: 300px;" aria-labelledby="customCards">
         <form id="custom-card-form" method="POST">
           {% csrf_token %}
           {% for custom_event in custom_events %}
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" name="{{ custom_event.event }}" id="{{ custom_event.event|slugify }}-switch" {% if custom_event.active %}checked{% endif %}>
-            <label class="form-check-label" for="{{ custom_event.event|slugify }}-switch">{{ custom_event.event }}</label>
+            <label class="form-check-label small" for="{{ custom_event.event|slugify }}-switch">{{ custom_event.event }}</label>
           </div>
           {% endfor %}
         </form>
       </div>
     </div>
+    {% endif %}
   </div>
-  {% endif %}
-  <div class="container">
-    <div class="row g-1 g-md-3 mt-3 justify-content-center">
-      {% for event_card in event_cards %}
-      <div class="col-6 col-md-6 col-lg-4 col-xl-3 text-center mb-1 mb-md-3 mt-0">
-        <div class="card bg-primary text-white">
-          {% if event_card.help_text %}
-          <span class="badge bg-warning text-dark rounded-pill position-absolute bottom-0 end-0 m-1 d-none d-md-inline" data-bs-placement="bottom" data-bs-toggle="tooltip" title="{{ event_card.help_text }}">?</span>
-          {% endif %}
-          <span class="badge {% if event_card.percent_change|make_list|first == '-' %}bg-danger{% else %}bg-success{% endif %} position-absolute top-0 end-0 m-1 d-none d-md-inline">{{ event_card.percent_change }}%</span>
-          <div class="card-body display-5 p-0">
-            {{ event_card.value }}
-          </div>
-          <div class="fw-bold text-truncate mb-1 px-2">
-            {{ event_card.name }}
-          </div>
+
+  <div class="row g-3">
+    {% for event_card in event_cards %}
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="metric-tile">
+        {% with pc=event_card.percent_change|stringformat:"s" %}
+        {% if event_card.percent_change == 0 %}
+        <span class="metric-delta is-flat" title="No change vs previous period">·</span>
+        {% elif pc|slice:":1" == "-" %}
+        <span class="metric-delta is-down">{{ event_card.percent_change }}%</span>
+        {% else %}
+        <span class="metric-delta is-up">+{{ event_card.percent_change }}%</span>
+        {% endif %}
+        {% endwith %}
+        <div class="metric-label text-truncate" {% if event_card.help_text %}data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ event_card.help_text }}"{% endif %}>
+          {{ event_card.name }}
         </div>
+        <div class="metric-value">{{ event_card.value }}</div>
       </div>
-      {% endfor %}
     </div>
+    {% endfor %}
   </div>
 </div>
+
 <div class="container my-4">
-  <div class="row text-center">
+  <div class="row g-3">
     <div class="col-12 col-md-8">
-      <div class="bg-light mb-4 p-2 rounded">
-        <canvas id="chart-total-events"></canvas>
+      <div class="chart-panel mb-3">
+        <div class="chart-panel-header">
+          <span class="chart-panel-title">events over time</span>
+        </div>
+        <div class="chart-panel-body" style="height: 320px;">
+          <canvas id="chart-total-events"></canvas>
+        </div>
       </div>
-      <div class="bg-light mb-4 p-2 rounded">
-        <div id="datamap"></div>
+      <div class="chart-panel">
+        <div class="chart-panel-header">
+          <span class="chart-panel-title">sessions · US states</span>
+        </div>
+        <div class="chart-panel-body">
+          <div id="datamap" style="min-height: 320px;"></div>
+        </div>
       </div>
     </div>
     <div id="doughnut-graphs" class="col-12 col-md-4">
-      <div class="bg-light mb-4 p-2 rounded">
-        <canvas id="chart-total-events-by-device"></canvas>
+      <div class="chart-panel mb-3">
+        <div class="chart-panel-header">
+          <span class="chart-panel-title">device</span>
+        </div>
+        <div class="chart-panel-body">
+          <canvas id="chart-total-events-by-device"></canvas>
+        </div>
       </div>
-      <div class="bg-light mb-4 p-2 rounded">
-        <canvas id="chart-total-events-by-browser"></canvas>
+      <div class="chart-panel mb-3">
+        <div class="chart-panel-header">
+          <span class="chart-panel-title">browser</span>
+        </div>
+        <div class="chart-panel-body">
+          <canvas id="chart-total-events-by-browser"></canvas>
+        </div>
       </div>
-      <div class="bg-light mb-4 p-2 rounded">
-        <canvas id="chart-total-events-by-platform"></canvas>
+      <div class="chart-panel mb-3">
+        <div class="chart-panel-header">
+          <span class="chart-panel-title">platform</span>
+        </div>
+        <div class="chart-panel-body">
+          <canvas id="chart-total-events-by-platform"></canvas>
+        </div>
       </div>
-      <div class="bg-light mb-4 p-2 rounded">
-        <canvas id="chart-total-events-by-screen-size"></canvas>
+      <div class="chart-panel mb-3">
+        <div class="chart-panel-header">
+          <span class="chart-panel-title">screen size</span>
+        </div>
+        <div class="chart-panel-body">
+          <canvas id="chart-total-events-by-screen-size"></canvas>
+        </div>
       </div>
     </div>
   </div>
-  <div id="top-lists" class="row justify-content-center">
+</div>
+
+<div class="container my-4">
+  <div class="section-label mb-2">top lists · ranked</div>
+  <div id="top-lists" class="row g-3">
     {% if total_page_views_by_page_url|length > 0 %}
-    <div class="col-12 col-sm-6 col-lg-4 mb-5">
-      <ol class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-start fw-bold bg-dark text-white">
-          <span>Top pages by page view</span>
-          <span class="badge bg-primary rounded-pill">Count</span>
-        </li>
-        {% for item in total_page_views_by_page_url %}
-        <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}" class="text-decoration-none text-dark text-truncate">{{ item.label }}</a>
-          <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-        </li>
-        {% endfor %}
-      </ol>
+    <div class="col-12 col-sm-6 col-lg-4">
+      <div class="rank-list">
+        <div class="rank-list-header">
+          <span class="rank-list-title">top pages · page views</span>
+          <span class="rank-list-col">count</span>
+        </div>
+        <div class="rank-list-body">
+          {% for item in total_page_views_by_page_url %}
+          <div class="rank-list-row">
+            <span class="rank-label"><a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}">{{ item.label }}</a></span>
+            <span class="rank-count">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
     {% endif %}
+
     {% if total_events_by_page_url|length > 0 %}
-    <div class="col-12 col-sm-6 col-lg-4 mb-5">
-      <ol class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-start fw-bold bg-dark text-white">
-          <span>Top pages by event</span>
-          <span class="badge bg-primary rounded-pill">Count</span>
-        </li>
-        {% for item in total_events_by_page_url %}
-        <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}" class="text-decoration-none text-dark text-truncate">{{ item.label }}</a>
-          <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-        </li>
-        {% endfor %}
-      </ol>
+    <div class="col-12 col-sm-6 col-lg-4">
+      <div class="rank-list">
+        <div class="rank-list-header">
+          <span class="rank-list-title">top pages · all events</span>
+          <span class="rank-list-col">count</span>
+        </div>
+        <div class="rank-list-body">
+          {% for item in total_events_by_page_url %}
+          <div class="rank-list-row">
+            <span class="rank-label"><a href="{% url 'property' property.id %}?filter_url={{ item.label|urlencode }}">{{ item.label }}</a></span>
+            <span class="rank-count">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
     {% endif %}
+
     {% if total_session_starts_by_referrer|length > 0 %}
-    <div class="col-12 col-sm-6 col-lg-4 mb-5">
-      <ol class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-start fw-bold bg-dark text-white">
-          <span>Top referrers</span>
-          <span class="badge bg-primary rounded-pill">Count</span>
-        </li>
-        {% for item in total_session_starts_by_referrer %}
-        <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <span class="text-truncate">{{ item.label }}</span>
-          <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-        </li>
-        {% endfor %}
-      </ol>
+    <div class="col-12 col-sm-6 col-lg-4">
+      <div class="rank-list">
+        <div class="rank-list-header">
+          <span class="rank-list-title">top referrers</span>
+          <span class="rank-list-col">sessions</span>
+        </div>
+        <div class="rank-list-body">
+          {% for item in total_session_starts_by_referrer %}
+          <div class="rank-list-row">
+            <span class="rank-label">{{ item.label }}</span>
+            <span class="rank-count">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
     {% endif %}
+
     {% if total_events_by_custom_event|length > 0 %}
-    <div class="col-12 col-sm-6 col-lg-4 mb-5">
-      <ol class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-start fw-bold bg-dark text-white">
-          <span>Top custom events</span>
-          <span class="badge bg-primary rounded-pill">Count</span>
-        </li>
-        {% for item in total_events_by_custom_event %}
-        <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <span class="text-truncate">{{ item.label }}</span>
-          <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-        </li>
-        {% endfor %}
-      </ol>
+    <div class="col-12 col-sm-6 col-lg-4">
+      <div class="rank-list">
+        <div class="rank-list-header">
+          <span class="rank-list-title">top custom events</span>
+          <span class="rank-list-col">count</span>
+        </div>
+        <div class="rank-list-body">
+          {% for item in total_events_by_custom_event %}
+          <div class="rank-list-row">
+            <span class="rank-label">{{ item.label }}</span>
+            <span class="rank-count">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
     {% endif %}
+
     {% if total_page_views_by_utm_medium|length > 0 %}
-    <div class="col-12 col-sm-6 col-lg-4 mb-5">
-      <ol class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-start fw-bold bg-dark text-white">
-          <span>UTM Medium</span>
-          <span class="badge bg-primary rounded-pill">Count</span>
-        </li>
-        {% for item in total_page_views_by_utm_medium %}
-        <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <span class="text-truncate">{{ item.label }}</span>
-          <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-        </li>
-        {% endfor %}
-      </ol>
+    <div class="col-12 col-sm-6 col-lg-4">
+      <div class="rank-list">
+        <div class="rank-list-header">
+          <span class="rank-list-title">utm medium</span>
+          <span class="rank-list-col">views</span>
+        </div>
+        <div class="rank-list-body">
+          {% for item in total_page_views_by_utm_medium %}
+          <div class="rank-list-row">
+            <span class="rank-label">{{ item.label }}</span>
+            <span class="rank-count">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
     {% endif %}
+
     {% if total_page_views_by_utm_source|length > 0 %}
-    <div class="col-12 col-sm-6 col-lg-4 mb-5">
-      <ol class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-start fw-bold bg-dark text-white">
-          <span>UTM Source</span>
-          <span class="badge bg-primary rounded-pill">Count</span>
-        </li>
-        {% for item in total_page_views_by_utm_source %}
-        <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <span class="text-truncate">{{ item.label }}</span>
-          <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-        </li>
-        {% endfor %}
-      </ol>
+    <div class="col-12 col-sm-6 col-lg-4">
+      <div class="rank-list">
+        <div class="rank-list-header">
+          <span class="rank-list-title">utm source</span>
+          <span class="rank-list-col">views</span>
+        </div>
+        <div class="rank-list-body">
+          {% for item in total_page_views_by_utm_source %}
+          <div class="rank-list-row">
+            <span class="rank-label">{{ item.label }}</span>
+            <span class="rank-count">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
     {% endif %}
+
     {% if total_page_views_by_utm_campaign|length > 0 %}
-    <div class="col-12 col-sm-6 col-lg-4 mb-5">
-      <ol class="list-group">
-        <li class="list-group-item d-flex justify-content-between align-items-start fw-bold bg-dark text-white">
-          <span>UTM Campaign</span>
-          <span class="badge bg-primary rounded-pill">Count</span>
-        </li>
-        {% for item in total_page_views_by_utm_campaign %}
-        <li class="list-group-item d-flex justify-content-between align-items-start bg-light">
-          <span class="text-truncate">{{ item.label }}</span>
-          <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-        </li>
-        {% endfor %}
-      </ol>
+    <div class="col-12 col-sm-6 col-lg-4">
+      <div class="rank-list">
+        <div class="rank-list-header">
+          <span class="rank-list-title">utm campaign</span>
+          <span class="rank-list-col">views</span>
+        </div>
+        <div class="rank-list-body">
+          {% for item in total_page_views_by_utm_campaign %}
+          <div class="rank-list-row">
+            <span class="rank-label">{{ item.label }}</span>
+            <span class="rank-count">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
     {% endif %}
   </div>
 </div>
 
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="siteTagModal" tabindex="-1" aria-labelledby="siteTagModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Site tag</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title text-white" id="siteTagModalLabel">Collector site tag</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p>Add this to the <strong>&lt;head&gt;</strong> of your HTML file:</p>
-<textarea class="form-control" rows="8" readonly><script>
+        <p class="text-muted small mb-3">Drop this into the <code class="text-amber">&lt;head&gt;</code> of your site. The collector ID below is scoped to <strong class="text-white">{{ property.name }}</strong>.</p>
+        <textarea class="codebox" rows="7" readonly><script>
   (function(m,e,t,r,i,c,s){m.collectorQueue = m.collectorQueue || r;
   m.collectorServer = c; m.collectorId = s; collectorScript = e.createElement(t);
   collectorScript.src = c + i; e.head.appendChild(m.collectorScript);
