@@ -364,6 +364,58 @@
   </div>
 </div>
 
+<div class="container my-4">
+  <div class="section-label mb-2">bot traffic · excluded from metrics above</div>
+  {% if bot_traffic.total > 0 %}
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+      <div class="metric-tile">
+        <div class="metric-label">Total bot events</div>
+        <div class="metric-value">{{ bot_traffic.total }}</div>
+      </div>
+    </div>
+    {% if bot_traffic.top_bots|length > 0 %}
+    <div class="col-12 col-md-4">
+      <div class="rank-list">
+        <div class="rank-list-header">
+          <span class="rank-list-title">top bots</span>
+          <span class="rank-list-col">events</span>
+        </div>
+        <div class="rank-list-body">
+          {% for item in bot_traffic.top_bots %}
+          <div class="rank-list-row">
+            <span class="rank-label">{{ item.label }}</span>
+            <span class="rank-count">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% if bot_traffic.top_pages|length > 0 %}
+    <div class="col-12 col-md-4">
+      <div class="rank-list">
+        <div class="rank-list-header">
+          <span class="rank-list-title">top pages · bot hits</span>
+          <span class="rank-list-col">events</span>
+        </div>
+        <div class="rank-list-body">
+          {% for item in bot_traffic.top_pages %}
+          <div class="rank-list-row">
+            <span class="rank-label">{{ item.label }}</span>
+            <span class="rank-count">{{ item.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="text-muted small">No bot events in this range.</div>
+  {% endif %}
+</div>
+
 <div class="modal fade" id="siteTagModal" tabindex="-1" aria-labelledby="siteTagModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
