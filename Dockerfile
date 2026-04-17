@@ -8,6 +8,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY --from=oven/bun:latest /usr/local/bin/bun /usr/local/bin/bun
 
+# Use Linode's package mirror (same network as the host). Resilient to
+# archive.ubuntu.com / security.ubuntu.com outages.
+RUN sed -i \
+    -e 's|http://archive.ubuntu.com/ubuntu|http://mirrors.linode.com/ubuntu|g' \
+    -e 's|http://security.ubuntu.com/ubuntu|http://mirrors.linode.com/ubuntu|g' \
+    /etc/apt/sources.list.d/ubuntu.sources
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates curl unzip gdal-bin \
