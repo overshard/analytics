@@ -108,15 +108,10 @@ def collect(request):
             event_obj.data['device'] = 'Tablet'
         else:
             event_obj.data['device'] = 'Desktop'
-        if not ua.is_bot:
-            # I've decided I don't want to save bots in the database but you
-            # are free to change this!
-            event_obj.save()
-    else:
-        # If we don't have a user agent let's save just in case because it might
-        # be a server side event or the latest chrome which sometimes doesn't
-        # have one. We do try to get userAgentData in our collector.js too which
-        # gets auto set into the correct data attributes.
-        event_obj.save()
+        if ua.is_bot:
+            event_obj.data['is_bot'] = True
+            event_obj.data['bot_name'] = ua.browser.family or 'Unknown bot'
+
+    event_obj.save()
 
     return HttpResponse(status=204)
