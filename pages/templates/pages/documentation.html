@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 
 {% block extra_head %}
@@ -6,8 +7,13 @@
 {% endblock %}
 
 
+{% block extra_css %}
+<link href="{% static 'pages.css' %}" rel="stylesheet">
+{% endblock %}
+
+
 {% block breadcrumbs %}
-<nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+<nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="/">Home</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
@@ -19,89 +25,109 @@
 {% block main %}
 <div class="container my-5">
   <div class="row">
-    <div class="col-lg-6 offset-lg-3 col-sm-8 offset-sm-2 col-xs-12 offset-xs-0">
-      <h1>{{ title }}</h1>
-      <p>Some examples of how to use analytics to collect various events on
-        websites, servers, and apps.</p>
+    <div class="col-lg-8 offset-lg-2">
+      <div class="section-label mb-2">collector · recipes</div>
+      <h1 class="fw-bolder text-white" style="letter-spacing: -0.01em;">{{ title }}</h1>
+      <p class="docs-lead">
+        All events are sent as JSON to a single <code>POST /collect/</code>
+        endpoint. The site tag pushes page_view, click, scroll, and page_leave
+        automatically — everything else is a one-liner on
+        <code>collectorQueue</code>, or a raw HTTP call from any language.
+      </p>
     </div>
   </div>
-  <div class="row">
-    <div class="col-lg-6 offset-lg-3 col-sm-8 offset-sm-2 col-xs-12 offset-xs-0">
-      <div class="accordion" id="accordionExample">
+
+  <div class="row mt-4">
+    <div class="col-lg-8 offset-lg-2">
+      <div class="accordion docs-accordion" id="docsAccordion">
+
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingOne">
             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
               Collect custom clicks
             </button>
           </h2>
-          <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+          <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#docsAccordion">
             <div class="accordion-body">
-              <p>To collect a custom click you can add the following to the anchor
-                tag:</p>
-              <textarea class="form-control" rows="4" readonly>onclick="collectorQueue.push({event: 'custom_link_click_event_name'})"</textarea>
+              <p>Attach a handler to any interactive element. The event name is
+                whatever you want to measure later.</p>
+              <textarea class="codebox" rows="3" readonly>onclick="collectorQueue.push({event: 'signup_cta_click'})"</textarea>
             </div>
           </div>
         </div>
+
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingTwo">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
               Collect custom page views
             </button>
           </h2>
-          <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+          <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#docsAccordion">
             <div class="accordion-body">
-              <p>If you want to collect a custom page view, like a successful
-                checkout on the invoice page, you can add anywhere on the page:</p>
-              <textarea class="form-control" rows="4" readonly><script>collectorQueue.push({event: 'custom_page_view_event_name'});</script></textarea>
+              <p>Use this for SPA route changes, funnel checkpoints
+                ("invoice paid"), or any meaningful page-level moment. Push
+                once per visit:</p>
+              <textarea class="codebox" rows="3" readonly><script>collectorQueue.push({event: 'checkout_success'});</script></textarea>
             </div>
           </div>
         </div>
+
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingThree">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-              Collect custom data
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+              Attach custom data to any event
             </button>
           </h2>
-          <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+          <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#docsAccordion">
             <div class="accordion-body">
-              <p>All of our data gets stored in the database in a JSONField called
-                "data". If you want to send more details with events you can add
-                more data key-value pairs. As an example:</p>
-              <textarea class="form-control" rows="4" readonly><script>collectorQueue.push({event: 'admin_page_view', data: {user_segment: 'admins'}});</script></textarea>
+              <p>Every event is stored as JSON in a <code>data</code> field.
+                Add whatever keys you need — no migration required, query with
+                Django ORM <code>data__user_segment</code> lookups later.</p>
+              <textarea class="codebox" rows="3" readonly><script>collectorQueue.push({event: 'admin_page_view', data: {user_segment: 'admins'}});</script></textarea>
             </div>
           </div>
         </div>
+
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingFour">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
-              Sending events to the server
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+              Send events over raw HTTP
             </button>
           </h2>
-          <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionExample">
+          <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#docsAccordion">
             <div class="accordion-body">
-              <p>You can technically collect anything from anywhere by sending a
-                POST request to the server with JSON data in the body. Make sure
-                you include a valid collectorId, event, and data. As an
-                example:</p>
-              <textarea class="form-control" rows="4" readonly>curl -X POST -d '{"collector_id": "PROPERTY_COLLECTOR_ID", "event": "custom_app_event", "data": { "app_id": "4" }}' YOUR_COLLECTOR_SERVER</textarea>
+              <p>The collector endpoint is plain JSON — any HTTP client
+                will do. Include a valid <code>collector_id</code>,
+                <code>event</code>, and optional <code>data</code>.</p>
+              <textarea class="codebox" rows="4" readonly>curl -X POST -H 'Content-Type: application/json' \
+  -d '{"collector_id": "PROPERTY_COLLECTOR_ID", "event": "custom_app_event", "data": {"app_id": 4}}' \
+  YOUR_COLLECTOR_SERVER/collect/</textarea>
             </div>
           </div>
         </div>
+
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingFive">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="true" aria-controls="collapseFive">
-              Server side events
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+              Server-side events (Python)
             </button>
           </h2>
-          <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#accordionExample">
+          <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#docsAccordion">
             <div class="accordion-body">
-              <p>Sometimes you may want to collect events from a server and you
-                can send events using any http request library. For example, if
-                using "requests" on Python:</p>
-              <textarea class="form-control" rows="4" readonly>requests.post('YOUR_COLLECTOR_SERVER', json={'collector_id': 'PROPERTY_COLLECTOR_ID', 'event': 'custom_app_event', 'data': { 'app_id': '4' }})</textarea>
+              <p>Any backend, any library, any runtime. Here's a Python
+                example using <code>requests</code>:</p>
+              <textarea class="codebox" rows="5" readonly>import requests
+
+requests.post(
+    'YOUR_COLLECTOR_SERVER/collect/',
+    json={'collector_id': 'PROPERTY_COLLECTOR_ID',
+          'event': 'subscription_renewed',
+          'data': {'plan': 'pro', 'mrr': 49}}
+)</textarea>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>

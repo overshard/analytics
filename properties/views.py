@@ -533,14 +533,24 @@ def property(request, property_id):
         "total_session_starts_by_region_chart_data"
     ] = total_session_starts_by_region_chart_data
 
-    if request.GET.get("report") == "":
-        context["print"] = True
-        html = render_to_string("properties/property.html", context)
-        filename = f"reports/{uuid.uuid4()}.pdf"
-        generate_pdf_from_html(html, filename)
-        with open(default_storage.path(filename), "rb") as pdf:
-            response = HttpResponse(pdf.read(), content_type="application/pdf")
-            response["Content-Disposition"] = "inline; filename=report.pdf"
+    # Report formats. `?report` (or `?report=pdf`) returns a printed PDF
+    # rendered from the dashboard template; `?report=md` returns a plain-text
+    # Markdown report suited for piping into an LLM.
+    if "report" in request.GET:
+        fmt = request.GET.get("report") or "pdf"
+        if fmt == "md":
+            md = render_to_string("properties/property_report.md", context)
+            response = HttpResponse(md, content_type="text/markdown; charset=utf-8")
+            response["Content-Disposition"] = f'inline; filename="{property_obj.name}.md"'
             return response
+        if fmt == "pdf":
+            context["print"] = True
+            html = render_to_string("properties/property.html", context)
+            filename = f"reports/{uuid.uuid4()}.pdf"
+            generate_pdf_from_html(html, filename)
+            with open(default_storage.path(filename), "rb") as pdf:
+                response = HttpResponse(pdf.read(), content_type="application/pdf")
+                response["Content-Disposition"] = "inline; filename=report.pdf"
+                return response
 
     return render(request, "properties/property.html", context)

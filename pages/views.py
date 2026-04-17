@@ -43,8 +43,18 @@ def documentation(request):
 
 
 def favicon(request):
-    icon = "📊"
-    svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">{icon}</text></svg>'
+    # Rising-bars mark — a four-bar histogram in mossy green with an amber
+    # cap on the tallest column. Matches the in-app logo, evokes "aggregate
+    # counts over time" which is what Analytics actually tracks.
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
+        '<rect x="6"  y="38" width="10" height="22" rx="1.5" fill="#6b9e78"/>'
+        '<rect x="20" y="28" width="10" height="32" rx="1.5" fill="#6b9e78"/>'
+        '<rect x="34" y="18" width="10" height="42" rx="1.5" fill="#6b9e78"/>'
+        '<rect x="48" y="8"  width="10" height="52" rx="1.5" fill="#6b9e78"/>'
+        '<rect x="48" y="8"  width="10" height="6"  rx="1.5" fill="#c9a84c"/>'
+        "</svg>"
+    )
     return HttpResponse(svg, content_type="image/svg+xml")
 
 

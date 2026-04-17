@@ -111,29 +111,31 @@ def standard_event_cards(events_filtered, events_filtered_prev):
         "help_text": "An engaged user is a user more than 10 events collected for your selected date range.",
     })
 
-    try:
-        total_time_on_page = events_filtered.filter(event="page_leave").aggregate(
-            total_time_on_page=models.Avg(
-                Cast("data__time_on_page", models.FloatField()) / 1000
-            )
-        )["total_time_on_page"]
-        avg_time_on_page = round(total_time_on_page, 2)
-    except TypeError:
-        avg_time_on_page = 0
-    try:
-        total_time_on_page_prev = events_filtered_prev.filter(event="page_leave").aggregate(
-            total_time_on_page=models.Avg(
-                Cast("data__time_on_page", models.FloatField()) / 1000
-            )
-        )["total_time_on_page"]
-        avg_time_on_page_prev = round(total_time_on_page_prev, 2)
-    except TypeError:
-        avg_time_on_page_prev = 0
+    # Cap time-on-page to filter out idle-tab outliers (left open for hours).
+    # Anything < 1s is likely bot/instant-exit; anything > 30min is almost
+    # certainly an idle/abandoned tab rather than real engagement.
+    TIME_ON_PAGE_MIN_S = 1
+    TIME_ON_PAGE_MAX_S = 30 * 60
+
+    def _avg_time_on_page(qs):
+        try:
+            avg = qs.filter(event="page_leave").annotate(
+                time_on_page_s=Cast("data__time_on_page", models.FloatField()) / 1000
+            ).filter(
+                time_on_page_s__gte=TIME_ON_PAGE_MIN_S,
+                time_on_page_s__lte=TIME_ON_PAGE_MAX_S,
+            ).aggregate(avg=models.Avg("time_on_page_s"))["avg"]
+            return round(avg, 2) if avg is not None else 0
+        except TypeError:
+            return 0
+
+    avg_time_on_page = _avg_time_on_page(events_filtered)
+    avg_time_on_page_prev = _avg_time_on_page(events_filtered_prev)
     event_cards.append({
         "name": "Avg. time on page",
         "value": f"{avg_time_on_page}s",
         "percent_change": round((avg_time_on_page - avg_time_on_page_prev) / avg_time_on_page_prev * 100) if avg_time_on_page_prev else 0,
-        "help_text": "The average amount of time a user spends on each page of your site.",
+        "help_text": "Average time a user spends on each page. Sessions over 30 minutes are excluded as idle.",
     })
 
     return event_cards

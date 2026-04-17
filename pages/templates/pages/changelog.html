@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 
 {% block extra_head %}
@@ -6,8 +7,13 @@
 {% endblock %}
 
 
+{% block extra_css %}
+<link href="{% static 'pages.css' %}" rel="stylesheet">
+{% endblock %}
+
+
 {% block breadcrumbs %}
-<nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+<nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="/">Home</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
@@ -19,106 +25,92 @@
 {% block main %}
 <div class="container my-5">
   <div class="row">
-    <div class="col-lg-6 offset-lg-3 col-sm-8 offset-sm-2 col-xs-12 offset-xs-0">
-      <h1>{{ title }}</h1>
-      <p>New features and changes to analytics, sometimes I'll tease something coming soon.</p>
+    <div class="col-lg-8 offset-lg-2">
+      <div class="section-label mb-2">release log</div>
+      <h1 class="fw-bolder text-white" style="letter-spacing: -0.01em;">{{ title }}</h1>
+      <p class="text-muted">Shipped changes, schema tweaks, and the occasional tease for something coming.</p>
     </div>
   </div>
-  <div class="row">
-    <div class="col-lg-6 offset-lg-3 col-sm-8 offset-sm-2 col-xs-12 offset-xs-0">
 
-      <div class="row border-bottom py-2">
-        <div class="col-3">
-          <span class="badge bg-success">2025-10-04</span>
-        </div>
-        <div class="col-9">
-          <ul class="mb-0">
-            <li>Swap browser automation to Playwright with the bundled Chromium runtime</li>
-            <li>Switch Docker base image to Ubuntu 24.04 LTS</li>
-          </ul>
-        </div>
+  <div class="row mt-4">
+    <div class="col-lg-8 offset-lg-2">
+
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-17</div>
+        <ul>
+          <li>Redesign the whole dashboard with a warm-earth palette — mossy forest green and amber on deep charcoal, Monaspace Argon throughout, aligned to the <a href="https://status.bythewood.me/">status</a> app</li>
+          <li>Rework the property dashboard with metric tiles, period-over-period deltas, chart panels, and compact ranked top-lists instead of Bootstrap list groups</li>
+          <li>Rework the properties listing page with search, live-signal tiles, and a dense row layout</li>
+          <li>Swap the 📊 emoji favicon for a themed SVG bar-chart mark matching the in-app logo</li>
+          <li>Add a <code>/documentation/</code> link into the main nav so the collector snippet docs are easier to find</li>
+          <li>Restyle the collector-tag modal and accordion docs as terminal-style code blocks</li>
+        </ul>
       </div>
 
-      <div class="row border-bottom py-2">
-        <div class="col-3">
-          <span class="badge bg-success">2022-07-26</span>
-        </div>
-        <div class="col-9">
-          <ul class="mb-0">
-            <li>Add URL property filtering</li>
-          </ul>
-        </div>
+      <div class="changelog-entry">
+        <div class="changelog-date">2025-10-04</div>
+        <ul>
+          <li>Swap browser automation to Playwright with the bundled Chromium runtime</li>
+          <li>Switch Docker base image to Ubuntu 24.04 LTS</li>
+        </ul>
       </div>
 
-      <div class="row border-bottom py-2">
-        <div class="col-3">
-          <span class="badge bg-success">2022-07-06</span>
-        </div>
-        <div class="col-9">
-          <ul class="mb-0">
-            <li>Change IPInfo to local MaxMind DB for IP lookup</li>
-          </ul>
-        </div>
+      <div class="changelog-entry">
+        <div class="changelog-date">2025-10-03</div>
+        <ul>
+          <li>Migrate Python package management from Pipenv/pyenv to <code>uv</code></li>
+          <li>Switch frontend build from Yarn + Webpack to Bun + Vite</li>
+          <li>Fix d3/datamaps strict-mode crash under ESM so the US-state map renders again</li>
+          <li>Fix logout 405 by switching to a POST form + CSRF (Django 5 <code>LogoutView</code> is POST-only)</li>
+        </ul>
       </div>
 
-      <div class="row border-bottom py-2">
-        <div class="col-3">
-          <span class="badge bg-success">2022-06-18</span>
-        </div>
-        <div class="col-9">
-          <ul class="mb-0">
-            <li>Change all tracking terminology into collecting</li>
-          </ul>
-        </div>
+      <div class="changelog-entry">
+        <div class="changelog-date">2022-07-26</div>
+        <ul>
+          <li>Add URL property filtering — click any top-page row to scope the whole dashboard</li>
+        </ul>
       </div>
 
-      <div class="row border-bottom py-2">
-        <div class="col-3">
-          <span class="badge bg-success">2022-06-05</span>
-        </div>
-        <div class="col-9">
-          <ul class="mb-0">
-            <li>Add pdf report generator</li>
-          </ul>
-        </div>
+      <div class="changelog-entry">
+        <div class="changelog-date">2022-07-06</div>
+        <ul>
+          <li>Change IPInfo to local MaxMind DB for IP → geo lookup (no more third-party API)</li>
+        </ul>
       </div>
 
-      <div class="row border-bottom py-2">
-        <div class="col-3">
-          <span class="badge bg-success">2022-05-28</span>
-        </div>
-        <div class="col-9">
-          <ul class="mb-0">
-            <li>Add chromium screenshot utility</li>
-          </ul>
-        </div>
+      <div class="changelog-entry">
+        <div class="changelog-date">2022-06-18</div>
+        <ul>
+          <li>Rename all "tracking" terminology to "collecting" — we're not spyware</li>
+        </ul>
       </div>
 
-      <div class="row border-bottom py-2">
-        <div class="col-3">
-          <span class="badge bg-success">2022-05-28</span>
-        </div>
-        <div class="col-9">
-          <ul class="mb-0">
-            <li>Add open graph and meta data improvements</li>
-          </ul>
-        </div>
+      <div class="changelog-entry">
+        <div class="changelog-date">2022-06-05</div>
+        <ul>
+          <li>Add PDF report generator — hit <code>?report</code> on any property page to export</li>
+        </ul>
       </div>
 
-      <div class="row border-bottom py-2">
-        <div class="col-3">
-          <span class="badge bg-success">2022-05-22</span>
-        </div>
-        <div class="col-9">
-          <ul class="mb-0">
-            <li>Add previous period comparisons</li>
-            <li>Add a sharable link to property pages</li>
-            <li>Add UTM query param collecting</li>
-            <li>Add platform doughnut graph</li>
-            <li>Add date range selection</li>
-            <li>Add custom card selection</li>
-          </ul>
-        </div>
+      <div class="changelog-entry">
+        <div class="changelog-date">2022-05-28</div>
+        <ul>
+          <li>Add headless Chromium screenshot utility</li>
+          <li>Add Open Graph / Twitter card metadata</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="changelog-date">2022-05-22</div>
+        <ul>
+          <li>Add previous-period comparisons on every metric card</li>
+          <li>Add a shareable public-link toggle for property pages</li>
+          <li>Add UTM query-param collection (source, medium, campaign)</li>
+          <li>Add platform doughnut graph</li>
+          <li>Add date-range selection with presets and a custom picker</li>
+          <li>Add custom event cards — pin any custom event as a headline metric</li>
+        </ul>
       </div>
 
     </div>
