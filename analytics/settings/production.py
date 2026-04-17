@@ -59,6 +59,14 @@ MEDIA_URL = BASE_URL + "/media/"
 MEDIA_ROOT = "/data/media"
 
 
+# Email
+# https://docs.djangoproject.com/en/4.0/topics/email/#email-backends
+
+EMAIL_BACKEND = "analytics.mailer.DirectMXBackend"
+DEFAULT_FROM_EMAIL = "noreply@bythewood.me"
+SERVER_EMAIL = "noreply@bythewood.me"
+
+
 # Logging
 # https://docs.djangoproject.com/en/4.0/topics/logging/
 
