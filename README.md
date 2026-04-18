@@ -32,9 +32,8 @@ dependencies:
 
 - python
 - uv
-- node
-- yarn
-- playwright (and remember to run `playwright install` for the Chromium browser)
+- bun
+- chromium (used for server-side PDF report generation via a subprocess wrapper)
 
 You can also check the `Dockerfile` for an exact list of dependencies and adjust
 package names for your desired platform.
@@ -55,15 +54,14 @@ everything.
 
 ## Checking outdated dependencies
 
-This can be done in both yarn and uv with the following two commands:
+This can be done in both bun and uv with the following two commands:
 
     uv lock --upgrade --dry-run
-    yarn outdated
+    bun outdated
 
-You can then upgrade the outdated dependencies with the following two commands:
+You can then upgrade all dependencies at once with:
 
-    uv lock --upgrade && uv sync
-    yarn upgrade
+    make update
 
 I recommend testing everything after this to make sure it's all working.
 

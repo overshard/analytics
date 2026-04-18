@@ -36,6 +36,16 @@
     <div class="col-lg-8 offset-lg-2">
 
       <div class="changelog-entry">
+        <div class="changelog-date">2026-04-18</div>
+        <ul>
+          <li>Replace the Playwright PDF pipeline with a headless Chromium subprocess wrapper and move the Docker base image to Alpine — smaller image, faster cold starts</li>
+          <li>Centralize SQLite settings and expand PRAGMA tuning (WAL, synchronous, cache, mmap, temp_store)</li>
+          <li>Speed up the property dashboard, split the property view, and surface bot traffic separately</li>
+          <li>Swap the Exim relay for a Python direct-to-MX email backend</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
         <div class="changelog-date">2026-04-17</div>
         <ul>
           <li>Redesign the whole dashboard with a warm-earth palette — mossy forest green and amber on deep charcoal, Monaspace Argon throughout, aligned to the <a href="https://status.bythewood.me/">status</a> app</li>
