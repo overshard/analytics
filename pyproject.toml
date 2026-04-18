@@ -12,5 +12,4 @@ dependencies = [
     "uvicorn",
     "whitenoise",
     "geoip2",
-    "playwright",
 ]
