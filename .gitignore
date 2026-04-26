@@ -5,4 +5,5 @@ __pycache__/
 /db.sqlite3
 /db.mmdb
 /analytics/static
+/analytics/static_maps
 /.env

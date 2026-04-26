@@ -82,7 +82,11 @@ def collect(request):
                 g_data = g.city(ip)
                 if g_data:
                     event_obj.data['country'] = g_data['country_code']
-                    event_obj.data['region'] = g_data['region']
+                    # Some MMDB providers (e.g. DB-IP free) don't populate the
+                    # ISO subdivision code — only the full name. Prefer the
+                    # name so we get a value either way; the world map's
+                    # region lookup matches against both forms.
+                    event_obj.data['region'] = g_data.get('region_name') or g_data.get('region')
                     event_obj.data['city'] = g_data['city']
                     event_obj.data['loc'] = [g_data['latitude'], g_data['longitude']]
     except (GeoIP2Exception, AddressNotFoundError):

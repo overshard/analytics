@@ -13,7 +13,8 @@
 {{ total_events_by_screen_size|json_script:"chart-total-events-by-screen-size-data" }}
 {{ total_events_by_device|json_script:"chart-total-events-by-device-data" }}
 {{ total_events_by_platform|json_script:"chart-total-events-by-platform-data" }}
-{{ total_session_starts_by_region_chart_data|json_script:"chart-total-session-starts-by-region-data" }}
+{{ session_starts_by_country|json_script:"map-session-starts-by-country" }}
+{{ session_starts_by_country_region|json_script:"map-session-starts-by-country-region" }}
 <script type="module" src="{% static 'properties.js' %}"></script>
 {% endblock %}
 
@@ -181,11 +182,12 @@
         </div>
       </div>
       <div class="chart-panel">
-        <div class="chart-panel-header">
-          <span class="chart-panel-title">sessions · US states</span>
+        <div class="chart-panel-header chart-panel-header-with-action">
+          <span class="chart-panel-title" id="map-title">sessions · world</span>
+          <button type="button" id="map-back" class="chart-panel-action" hidden>← back to world</button>
         </div>
         <div class="chart-panel-body">
-          <div id="datamap" style="min-height: 320px;"></div>
+          <div id="map" style="min-height: 320px; position: relative;"></div>
         </div>
       </div>
     </div>

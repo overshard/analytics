@@ -95,24 +95,31 @@ from ourselves.
 
 ## User location data
 
-I'm unsure how I want to handle user location data at the moment. I'm not really
-interested in someone's personal location but I do like to know where people
-are coming from region wise. This helps me know if I need to add translations
-to my projects or if I need to add maybe a CDN/caching/server to a new region.
+I'm not interested in someone's personal location but I do like to know where
+people are coming from region wise. This helps me know if I need to add
+translations to my projects or if I need to add a CDN/caching/server to a new
+region. We don't store user IPs so location data isn't retroactive.
 
-For that reason I've added a simple way to enable or disable location data. I
-don't want to store user IPs so location data isn't retroactive. If you want to
-enable IP address lookups you can download a free or paid one from MaxMind on
-[maxmind.com](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data).
+The dashboard ships with a `refresh_geoip` management command that downloads
+the [DB-IP City Lite](https://db-ip.com/db/download/ip-to-city-lite) database
+(CC-BY-4.0, no signup, MaxMind-compatible MMDB format) into `GEOIP_PATH`. It
+runs automatically on container start; if the file already exists and is less
+than 30 days old it skips the download.
 
-Once you get a database drop it into the `data` directory on your server and
-name it `db.mmdb`. Note that we are only using the binary database, not the
-CSV database.
+To keep it fresh, add a host cron entry on the server that re-runs it monthly:
 
-Once added then we'll automatically start recording location data but leave out
-the IP address and any directly identifiable information.
+```cron
+# /etc/crontabs/root  — refresh GeoIP on the 4th of each month
+0 3 4 * * docker exec analytics_web python manage.py refresh_geoip --force
+```
 
-You can configure the database path in settings.
+The 4th gives DB-IP a few days to publish their monthly build (1st of the
+month). Failures are non-fatal — the collector silently skips GeoIP
+enrichment if the database is missing.
+
+If you'd rather use a different MMDB (MaxMind GeoLite2, IPLocate, etc.) just
+drop it at `GEOIP_PATH` (defaults to `/data/db.mmdb` in production) and
+disable the cron — any MaxMind-format database works.
 
 
 ## Backups

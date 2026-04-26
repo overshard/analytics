@@ -89,7 +89,10 @@ USE_THOUSAND_SEPARATOR = True
 
 STATIC_URL = 'static/'
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-STATICFILES_DIRS = (BASE_DIR / "analytics/static",)
+STATICFILES_DIRS = (
+    BASE_DIR / "analytics/static",
+    BASE_DIR / "analytics/static_maps",
+)
 STATIC_ROOT = BASE_DIR / "static"
 
 

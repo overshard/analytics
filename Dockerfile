@@ -22,6 +22,7 @@ COPY . .
 ENV PATH="/app/.venv/bin:/app/node_modules/.bin:$PATH"
 
 RUN bun run build && \
+    bun run build:maps && \
     uv run python manage.py collectstatic --noinput
 
 RUN addgroup -S -g 1000 app && \
