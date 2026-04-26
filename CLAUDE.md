@@ -32,11 +32,13 @@ Self-hosted website analytics service. Tracks page views, clicks, scrolls, sessi
 
 **Data model:** Everything centers on `Property` → `Event`. Events have a `event` type string (session_start, page_view, click, scroll, page_leave, or custom) and a `data` JSONField holding all event-specific key-value pairs. There is no separate table per event type — all querying is done via Django's JSON field lookups (`data__url`, `data__referrer`, `data__utm_source`, etc.).
 
-**Collection flow:** Client sites include `collector.js` (bundled via Vite's `collector` entry point). The script sets a `collectoruserid` cookie, fires session_start (on first visit), page_view, click, scroll, and page_leave events to `POST /collect/`. The server-side view enriches session_start events with GeoIP data (optional, requires `db.mmdb` MaxMind database) and parses user-agent strings into platform/browser/device fields. Bot traffic is silently dropped.
+**Collection flow:** Client sites include `collector.js` (bundled via Vite's `collector` entry point). The script sets a `collectoruserid` cookie, fires session_start (on first visit), page_view, click, scroll, and page_leave events to `POST /collect/`. The server-side view enriches session_start events with GeoIP data (uses `db.mmdb`, auto-downloaded on container start by the `refresh_geoip` management command from DB-IP City Lite — CC-BY-4.0, no signup) and parses user-agent strings into platform/browser/device fields. Bot traffic is silently dropped.
 
 **Dashboard:** `properties/views.py:property()` is the main dashboard view. It filters events by date range, computes current vs. previous period comparisons, and builds all chart/list data server-side. Standard metric cards are computed in `properties/queries.py`. Properties can have custom event cards (stored as JSON on the Property model). The dashboard supports a `?report` query param to generate PDF reports via a headless Chromium subprocess (`analytics/chromium.py`).
 
-**Frontend:** Vite bundles 4 entry points (`base`, `pages`, `properties`, `collector`) from each app's `static_src/` directory. Uses Bootstrap 5 (SCSS), Chart.js for graphs, D3 + datamaps for the US state map. Output goes to `analytics/static/`. WhiteNoise serves static files.
+**Frontend:** Vite bundles 4 entry points (`base`, `pages`, `properties`, `collector`) from each app's `static_src/` directory. Uses Bootstrap 5 (SCSS), Chart.js for graphs, `d3-geo` + `topojson-client` for the world map. Output goes to `analytics/static/`. WhiteNoise serves static files.
+
+**Map data:** `analytics/scripts/build_maps.js` (run via `bun run build:maps` at Docker build time) downloads Natural Earth admin-0 110m + admin-1 10m GeoJSON, encodes as TopoJSON, and writes per-country files to `analytics/static_maps/` (added to `STATICFILES_DIRS`). The world view is always loaded; per-country admin-1 (states/provinces) is lazy-fetched on click. Attribution: DB-IP link in the footer, Natural Earth is public domain.
 
 **Settings:** Split into `analytics/settings/__init__.py` (shared), `development.py`, and `production.py`. Dev uses SQLite at project root; production uses SQLite at `/data/db/db.sqlite3`. `DJANGO_SETTINGS_MODULE` defaults to development; production sets it via `.env`.
 
@@ -47,5 +49,5 @@ Self-hosted website analytics service. Tracks page views, clicks, scrolls, sessi
 - All model PKs are UUIDs.
 - Event data is schemaless — the `data` JSONField is the extensibility point. New event attributes are added by sending them from the client; no migration needed.
 - The `collector` context processor injects `collector_server` and `collector_id` into all templates so the app can track its own usage (property named "Proprium").
-- GeoIP is optional — if `db.mmdb` is missing, location enrichment is silently skipped.
+- GeoIP is auto-downloaded on container start (DB-IP City Lite). Monthly refresh via host cron (`docker exec analytics_web python manage.py refresh_geoip --force`). If the file is missing or stale, the collector silently skips enrichment — non-fatal.
 - Chromium is bundled in the Docker image (Alpine `chromium` package) for server-side PDF generation. `analytics/chromium.py` wraps a headless Chromium subprocess — no Playwright dependency.
