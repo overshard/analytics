@@ -2,7 +2,7 @@ from django.db.models import Avg, Count, FloatField, Q
 from django.db.models.functions import Cast, TruncDate
 from django.utils import timezone
 
-from .constants import BUILT_IN_EVENTS, US_STATES
+from .constants import BUILT_IN_EVENTS
 
 
 def human_events(events):
@@ -296,28 +296,37 @@ def page_views_by_utm(events_filtered, field, limit=10):
     return _top_by_key(events_filtered, f"data__utm_{field}", limit, event="page_view")
 
 
-def session_starts_by_region(events_filtered, limit=10):
+def session_starts_by_country(events_filtered):
+    """Sessions grouped by ISO 3166-1 alpha-2 country code."""
     rows = (
         events_filtered.filter(event="session_start")
-        .exclude(data__region__isnull=True)
-        .values("data__region")
+        .exclude(data__country__isnull=True)
+        .values("data__country")
         .annotate(count=Count("id"))
-        .order_by("-count")[:limit]
     )
-    return [{"label": r["data__region"], "count": r["count"]} for r in rows]
+    return {r["data__country"]: r["count"] for r in rows}
 
 
-def region_map_data(regions):
-    """Convert a regions list into the datamaps dict keyed by US state code."""
-    chart = {}
-    state_codes = set(US_STATES.values())
-    for r in regions:
-        label = r["label"]
-        if label in US_STATES:
-            chart[US_STATES[label]] = {"numberOfThings": r["count"]}
-        elif label in state_codes:
-            chart[label] = {"numberOfThings": r["count"]}
-    return chart
+def session_starts_by_country_region(events_filtered):
+    """
+    Sessions grouped first by country, then by region within that country.
+
+    Returned shape: {"US": {"CA": 42, "NY": 17}, "DE": {"BY": 9}, ...}.
+    Used by the world map for click-to-drill-down — the whole tree ships
+    with the dashboard so no extra request is needed when a country is
+    selected.
+    """
+    rows = (
+        events_filtered.filter(event="session_start")
+        .exclude(data__country__isnull=True)
+        .exclude(data__region__isnull=True)
+        .values("data__country", "data__region")
+        .annotate(count=Count("id"))
+    )
+    out = {}
+    for r in rows:
+        out.setdefault(r["data__country"], {})[r["data__region"]] = r["count"]
+    return out
 
 
 def bot_traffic(events_all, limit=10):

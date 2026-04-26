@@ -130,8 +130,6 @@ def _dashboard_context(property_obj, date_start_obj, date_end_obj, date_range, f
     )
     event_cards.extend(custom_cards)
 
-    regions = q.session_starts_by_region(events_filtered, limit=100)
-
     return {
         "event_cards": event_cards,
         "custom_events": custom_events,
@@ -147,8 +145,8 @@ def _dashboard_context(property_obj, date_start_obj, date_end_obj, date_range, f
         "total_page_views_by_utm_medium": q.page_views_by_utm(events_filtered, "medium"),
         "total_page_views_by_utm_source": q.page_views_by_utm(events_filtered, "source"),
         "total_page_views_by_utm_campaign": q.page_views_by_utm(events_filtered, "campaign"),
-        "total_session_starts_by_region": regions[:10],
-        "total_session_starts_by_region_chart_data": q.region_map_data(regions),
+        "session_starts_by_country": q.session_starts_by_country(events_filtered),
+        "session_starts_by_country_region": q.session_starts_by_country_region(events_filtered),
         "bot_traffic": q.bot_traffic(events_all),
     }
 
