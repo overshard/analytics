@@ -2,11 +2,6 @@
 {% load static %}
 
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'properties.css' %}">
-{% endblock %}
-
-
 {% block extra_js %}
 {{ total_events_graph|json_script:"chart-total-events-data" }}
 {{ total_events_by_browser|json_script:"chart-total-events-by-browser-data" }}

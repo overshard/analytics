@@ -45,9 +45,6 @@ def _find_chromium() -> Optional[str]:
     return None
 
 
-CHROMIUM_BINARY = _find_chromium()
-
-
 class ChromiumError(RuntimeError):
     pass
 
@@ -76,12 +73,13 @@ def _html_tempfile(html: str) -> Iterator[str]:
 
 
 def _run(args: list[str], timeout: int) -> None:
-    if not CHROMIUM_BINARY:
+    binary = _find_chromium()
+    if not binary:
         raise ChromiumError(
             "No chromium binary found on PATH (tried: chromium, "
             "chromium-browser, google-chrome)"
         )
-    cmd = [CHROMIUM_BINARY, *BASE_FLAGS, *args]
+    cmd = [binary, *BASE_FLAGS, *args]
     try:
         subprocess.run(cmd, check=True, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as exc:
