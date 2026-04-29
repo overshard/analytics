@@ -20,6 +20,29 @@ from .models import Property
 DASHBOARD_CACHE_TTL = 300  # seconds
 
 
+def _chart_polyline(points, width=600, height=100, padding=4):
+    """SVG polyline points string for the events-over-time line chart on the
+    printed report. Toner-friendly: thin black stroke, no fill, no gradient."""
+    if not points:
+        return ""
+    counts = [p["count"] for p in points]
+    max_c = max(counts) or 1
+    n = len(counts)
+    usable_h = height - 2 * padding
+    if n == 1:
+        x = width / 2
+        y = height - padding - (counts[0] / max_c) * usable_h
+        return f"{x:.1f},{y:.1f}"
+    return " ".join(
+        f"{(i / (n - 1)) * width:.1f},{height - padding - (c / max_c) * usable_h:.1f}"
+        for i, c in enumerate(counts)
+    )
+
+
+def _breakdown_total(rows):
+    return sum(r["count"] for r in rows) or 1
+
+
 def properties(request):
     if not request.user.is_authenticated:
         return redirect("/")
@@ -221,8 +244,30 @@ def property(request, property_id):
             response["Content-Disposition"] = f'inline; filename="{property_obj.name}.md"'
             return response
         if fmt == "pdf":
-            context["print"] = True
-            html = render_to_string("properties/property.html", context)
+            graph = context.get("total_events_graph") or []
+            peak = max(graph, key=lambda p: p["count"]) if graph else None
+            country_counts = context.get("session_starts_by_country") or {}
+            top_countries = sorted(
+                ({"label": code, "count": count} for code, count in country_counts.items()),
+                key=lambda r: r["count"],
+                reverse=True,
+            )[:10]
+            print_context = {
+                **context,
+                "chart_polyline": _chart_polyline(graph),
+                "chart_label_start": graph[0]["label"] if graph else "",
+                "chart_label_end": graph[-1]["label"] if graph else "",
+                "chart_peak_count": peak["count"] if peak else 0,
+                "chart_peak_label": peak["label"] if peak else "",
+                "breakdown_totals": {
+                    "device": _breakdown_total(context.get("total_events_by_device") or []),
+                    "browser": _breakdown_total(context.get("total_events_by_browser") or []),
+                    "platform": _breakdown_total(context.get("total_events_by_platform") or []),
+                    "screen_size": _breakdown_total(context.get("total_events_by_screen_size") or []),
+                },
+                "top_countries": top_countries,
+            }
+            html = render_to_string("properties/property_print.html", print_context)
             filename = f"reports/{uuid.uuid4()}.pdf"
             generate_pdf_from_html(html, filename)
             with open(default_storage.path(filename), "rb") as pdf:
