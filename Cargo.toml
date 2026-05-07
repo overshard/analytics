@@ -1,0 +1,44 @@
+[package]
+name = "analytics"
+version = "0.1.0"
+edition = "2021"
+default-run = "analytics"
+
+[dependencies]
+axum = { version = "0.8", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["fs", "cors", "trace", "set-header"] }
+tower-cookies = { version = "0.11", features = ["signed"] }
+minijinja = { version = "2", features = ["loader", "loop_controls", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_urlencoded = "0.7"
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "sqlite", "macros", "migrate", "chrono", "uuid"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.10"
+moka = { version = "0.12", features = ["future"] }
+maxminddb = "0.24"
+uaparser = "0.6"
+hmac = "0.12"
+sha2 = "0.10"
+base64 = "0.22"
+rand = "0.8"
+dotenvy = "0.15"
+anyhow = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
+flate2 = "1"
+tar = "0.4"
+tempfile = "3"
+mime_guess = "2"
+urlencoding = "2"
+futures-util = "0.3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ page.title }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block main %}
+<div class="container my-4">
+  <div class="row align-items-center g-3 mb-4">
+    <div class="col-md-5">
+      <div class="section-label mb-1">operator</div>
+      <h1 class="fw-bolder text-white mb-0" style="letter-spacing: -0.01em;">{{ page.title }}</h1>
+      <p class="text-muted mb-0 small mt-1">Every site you're collecting events from, event totals, and seven-day activity state.</p>
+    </div>
+    <div class="col-md-7">
+      <div class="dashboard-toolbar">
+        <form method="get" class="search-form flex-grow-1">
+          <span class="search-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+          </span>
+          <input type="text" class="form-control search-input" name="q" id="id_search" placeholder="grep properties..." {% if q %}value="{{ q }}"{% endif %} />
+        </form>
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePropertyAdd" aria-expanded="false" aria-controls="collapsePropertyAdd" onclick="window.collectorQueue && collectorQueue.push({event: 'add_property_toggle'})">
+          + new
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="collapse mb-4" id="collapsePropertyAdd">
+    <div class="bg-surface border-subtle rounded border p-3">
+      <div class="section-label mb-2">register property</div>
+      <p class="text-muted small mb-3">Give it any friendly name. You'll get a collector ID to embed right after you save.</p>
+      <form method="POST" action="/properties" class="dashboard-toolbar">
+        <input type="text" name="name" id="id_name" class="form-control flex-grow-1" placeholder="e.g. marketing-site" required>
+        <button type="submit" class="btn btn-primary">Add →</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="metric-tile metric-accent-green">
+        <div class="metric-label">total properties</div>
+        <div class="metric-value">{{ totals.properties }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="metric-tile metric-accent-green">
+        <div class="metric-label">total events</div>
+        <div class="metric-value">{{ totals.events }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="metric-tile metric-accent-green">
+        <div class="metric-label">page views</div>
+        <div class="metric-value">{{ totals.page_views }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="metric-tile metric-accent-amber">
+        <div class="metric-label">sessions</div>
+        <div class="metric-value">{{ totals.sessions }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label mb-2">registered properties</div>
+  {% for property in properties %}
+    <div class="property-row {% if not property.is_active %}is-quiet{% endif %}">
+      <div class="pr-main">
+        <div class="pr-title">
+          <span class="status-dot {% if property.is_active %}is-up{% else %}is-idle{% endif %}" aria-hidden="true"></span>
+          <a href="/{{ property.id }}" class="text-truncate" onclick="window.collectorQueue && collectorQueue.push({event: 'view_property'})">{{ property.name }}</a>
+        </div>
+        <div class="pr-id"><span class="pr-id-k">id</span>{{ property.id }}</div>
+      </div>
+      <div class="pr-side">
+        <div class="pr-meta">
+          <div class="pr-meta-cell">
+            <span class="pr-meta-k">state</span>
+            <span class="pr-meta-v {% if property.is_active %}text-green{% else %}text-muted{% endif %}">{% if property.is_active %}live{% else %}quiet{% endif %}</span>
+          </div>
+          <div class="pr-meta-cell">
+            <span class="pr-meta-k">events</span>
+            <span class="pr-meta-v">{{ property.total_events }}</span>
+          </div>
+          <div class="pr-meta-cell">
+            <span class="pr-meta-k">views</span>
+            <span class="pr-meta-v">{{ property.total_page_views }}</span>
+          </div>
+          <div class="pr-meta-cell">
+            <span class="pr-meta-k">sessions</span>
+            <span class="pr-meta-v">{{ property.total_session_starts }}</span>
+          </div>
+        </div>
+        <div class="pr-actions">
+          {% if not property.is_protected %}
+          <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#delete-modal-{{ property.id }}">
+            Delete
+          </button>
+          <div class="modal fade" id="delete-modal-{{ property.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title text-white">Confirm delete</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  Are you sure you want to delete <strong class="text-white">{{ property.name }}</strong>? All collected events will be removed.
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                  <form method="post" action="/properties/{{ property.id }}/delete" class="d-inline">
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          <a href="/{{ property.id }}" class="btn btn-sm btn-outline-light">View →</a>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="text-center py-5 text-muted">
+      <div class="section-label mb-3" style="justify-content:center;">no properties yet</div>
+      <p class="mb-0 small">Click <strong>+ new</strong> above to register your first site.</p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

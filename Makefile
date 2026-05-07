@@ -1,70 +1,56 @@
-# Django + Vite Makefile
-# v. 2022.07.13
+CARGO ?= $(HOME)/.cargo/bin/cargo
+PORT  ?= 8000
 
+.DEFAULT_GOAL := run
+.PHONY: run build start clean push pull maps seed migrate
 
-.PHONY: run runserver vite clean push pull update
-.DEFAULT: run
+# Dev: Vite watch + cargo run concurrently. Both die on Ctrl+C.
+run: frontend/node_modules dist/.vite/manifest.json
+	@trap 'kill 0' EXIT INT TERM; \
+	(cd frontend && bun run dev) & \
+	PORT=$(PORT) $(CARGO) run
 
+# Production build (Vite assets + release binary)
+build: frontend/node_modules maps
+	cd frontend && bun run build
+	$(CARGO) build --release
 
-SERVER_URL = $(shell git config --get remote.server.url | sed 's|ssh://||' | cut -d ':' -f 1 | cut -d '/' -f 1)
-PROJECT_NAME = $(shell basename $(PWD))
+# Run the release binary (after `make build`)
+start:
+	PORT=$(PORT) ./target/release/analytics
 
-
-run: install
-	@echo "run ----------------------------------------------------------------"
-	${MAKE} -j2 runserver vite
-
-runserver:
-	uv run python manage.py runserver 0.0.0.0:8000
-
-vite:
-	bun run dev
-
-
-install: node_modules/touchfile .venv/touchfile db.sqlite3
-
-node_modules/touchfile: package.json
-	@echo "install node deps --------------------------------------------------"
-	bun install
-	touch $@
-	@echo "> all node deps installed"
-
-.venv/touchfile: pyproject.toml
-	@echo "install python deps ------------------------------------------------"
-	uv sync
-	touch $@
-	@echo "> all python deps installed"
-
-db.sqlite3:
-	@echo "create database ----------------------------------------------------"
-	uv run python manage.py migrate
-	@echo "> database created"
-
-
-push:
-	@echo "push ---------------------------------------------------------------"
-	git remote | xargs -I R git push R master
-
-pull:
-	@echo "pull ---------------------------------------------------------------"
-	rsync -avz $(SERVER_URL):/srv/data/$(PROJECT_NAME)/db/db.sqlite3 db.sqlite3
-	rsync -avz $(SERVER_URL):/srv/data/$(PROJECT_NAME)/db.mmdb db.mmdb
-	rsync -avz $(SERVER_URL):/srv/data/$(PROJECT_NAME)/media/ media
-	@echo "> all files copied"
-
-
-update: install
-	@echo "update -------------------------------------------------------------"
-	uv lock --upgrade
-	bun update --latest
-	@echo "> all deps updated"
-
+# Build the per-country topojson static_maps/ from natural earth
+maps: frontend/node_modules
+	cd frontend && bun run build:maps
 
 clean:
-	@echo "clean --------------------------------------------------------------"
-	rm -rf node_modules
-	rm -rf .venv
-	rm -rf db.sqlite3
-	rm -rf db.mmdb
-	rm -rf media
-	@echo "> all files removed"
+	$(CARGO) clean
+	rm -rf dist frontend/node_modules data/db.sqlite3 data/db.mmdb
+
+push:
+	git remote | xargs -I R git push R master
+
+# Seed a "Seed Test" property with realistic fake events. Re-runnable.
+# Override defaults: `make seed SESSIONS=2000 DAYS=60`
+seed:
+	$(CARGO) run --bin seed -- $(SESSIONS) $(DAYS)
+
+# Import an existing Django analytics SQLite into the rust hot-field schema.
+# `make migrate FROM=../analytics/db.sqlite3` (add FORCE=1 to wipe first).
+migrate:
+	@if [ -z "$(FROM)" ]; then echo "usage: make migrate FROM=<path-to-django.sqlite3> [FORCE=1]"; exit 2; fi
+	$(CARGO) run -- migrate "$(FROM)" $(if $(FORCE),--force,)
+
+# Pull production data (db, geoip, media) for local dev
+pull:
+	@SERVER=$$(git config --get remote.server.url | sed 's|ssh://||' | cut -d ':' -f 1 | cut -d '/' -f 1); \
+	NAME=$$(basename $$(pwd)); \
+	mkdir -p data; \
+	rsync -avz $$SERVER:/srv/data/$$NAME/db/db.sqlite3 data/db.sqlite3; \
+	rsync -avz $$SERVER:/srv/data/$$NAME/db.mmdb data/db.mmdb
+
+frontend/node_modules:
+	cd frontend && bun install
+
+dist/.vite/manifest.json: frontend/node_modules
+	cd frontend && bun run build

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ page.title }}{% endblock %} · Analytics</title>
+  <meta name="description" content="{% block description %}{{ page.description }}{% endblock %}">
+  {% if base_url %}<base href="{{ base_url }}">{% endif %}
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+
+  {% block extra_head %}{% endblock %}
+
+  <link href="{{ vite_asset('static_src/base/index.js', 'css') }}" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+
+  {% include 'includes/collector.html' %}
+</head>
+
+<body>
+  {% include 'includes/messages.html' %}
+
+  {% block nav %}
+  <nav class="navbar navbar-dark navbar-expand-md d-print-none">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <span class="logo" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+            <rect x="6"  y="38" width="10" height="22" rx="1.5" fill="#6b9e78"/>
+            <rect x="20" y="28" width="10" height="32" rx="1.5" fill="#6b9e78"/>
+            <rect x="34" y="18" width="10" height="42" rx="1.5" fill="#6b9e78"/>
+            <rect x="48" y="8"  width="10" height="52" rx="1.5" fill="#6b9e78"/>
+            <rect x="48" y="8"  width="10" height="6"  rx="1.5" fill="#c9a84c"/>
+          </svg>
+        </span>
+        <span class="brand-text">Analytics</span>
+        <span class="brand-dot" aria-hidden="true"></span>
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMain">
+        <ul class="navbar-nav ms-3">
+          {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link {% if request.path == '/properties' %}active{% endif %}" href="/properties">Properties</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path == '/documentation' %}active{% endif %}" href="/documentation">Docs</a></li>
+          {% else %}
+          <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path == '/documentation' %}active{% endif %}" href="/documentation">Docs</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path == '/changelog' %}active{% endif %}" href="/changelog">Changelog</a></li>
+          {% endif %}
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          {% if user.is_authenticated %}
+          <li class="nav-item d-flex align-items-center">
+            <form method="post" action="/logout" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
+            </form>
+          </li>
+          {% else %}
+          <li class="nav-item d-flex align-items-center">
+            <a href="/login" class="btn btn-sm btn-outline-light">Login</a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+  {% endblock %}
+
+  {% block breadcrumb_wrapper %}
+  <div class="breadcrumb-bar py-2 overflow-auto d-print-none">
+    <div class="container">
+      {% block breadcrumbs %}{% endblock %}
+    </div>
+  </div>
+  {% endblock %}
+
+  <main>
+    {% block main %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="d-print-none">
+    <div class="container">
+      <div class="row links">
+        <div class="col-12 col-lg-6 mb-4 mb-lg-0">
+          <div class="h5 mb-3">// Analytics</div>
+          <p>Self-hosted web analytics by <a href="https://isaacbythewood.com/">Isaac Bythewood</a>.
+            Page views, clicks, scrolls, sessions, custom events. GeoIP maps,
+            UTM attribution, PDF reports. No cookies you don't control, no data
+            pipeline you can't audit.</p>
+        </div>
+        <div class="col-6 col-lg-2 offset-lg-2">
+          <div class="h5 mb-3">// Pages</div>
+          <ul class="list-unstyled">
+            <li class="mb-2"><a href="/" class="link-footer">Home</a></li>
+            <li class="mb-2"><a href="/documentation" class="link-footer">Documentation</a></li>
+            <li class="mb-2"><a href="/changelog" class="link-footer">Changelog</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="h5 mb-3">// Account</div>
+          <ul class="list-unstyled">
+            {% if user.is_authenticated %}
+            <li class="mb-2"><a href="/properties" class="link-footer">Properties</a></li>
+            <li class="mb-2">
+              <form method="post" action="/logout" class="d-inline">
+                <button type="submit" class="btn btn-link link-footer p-0 align-baseline text-start">Logout</button>
+              </form>
+            </li>
+            {% else %}
+            <li class="mb-2"><a href="/login" class="link-footer">Login</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="footer-bar d-print-none">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-sm-6 d-flex align-items-center justify-content-center justify-content-sm-start order-1 order-sm-0">
+          <small>&copy; {{ now.year }} Isaac Bythewood · Some rights reserved · <a href="https://db-ip.com" class="link-footer" target="_blank" rel="noopener">IP Geolocation by DB-IP</a></small>
+        </div>
+        <div class="col-sm-6 d-flex justify-content-center justify-content-sm-end py-3 py-sm-0">
+          <a href="https://isaacbythewood.com/" target="_blank" class="logo logo-sm ms-3" aria-label="Isaac Bythewood">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+              <rect x="6"  y="38" width="10" height="22" rx="1.5" fill="#6b9e78"/>
+              <rect x="20" y="28" width="10" height="32" rx="1.5" fill="#6b9e78"/>
+              <rect x="34" y="18" width="10" height="42" rx="1.5" fill="#6b9e78"/>
+              <rect x="48" y="8"  width="10" height="52" rx="1.5" fill="#6b9e78"/>
+              <rect x="48" y="8"  width="10" height="6"  rx="1.5" fill="#c9a84c"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+
+  <script type="module" src="{{ vite_asset('static_src/base/index.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

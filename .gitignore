@@ -1,9 +1,9 @@
-__pycache__/
-/.venv
-/media
-/node_modules
-/db.sqlite3
-/db.mmdb
-/analytics/static
-/analytics/static_maps
+/target
+/dist
+/data
+/frontend/node_modules
+/frontend/dist
+/static_maps
 /.env
+.env.local
+*.log
