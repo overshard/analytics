@@ -201,6 +201,9 @@ async fn main() -> anyhow::Result<()> {
         .route("/collect", post(collector::collect).options(collector::options))
         .route("/collect/", post(collector::collect).options(collector::options))
         .layer(collector_cors)
+        // Stable URL for the embed snippet. Resolves the hashed Vite output
+        // at request time so consumers can hardcode this path forever.
+        .route("/static/collector.js", get(pages::collector_alias))
         // Property dashboard uses a UUID path segment. Keep it last so the named
         // routes above take precedence.
         .route("/{property_id}", get(views::property))

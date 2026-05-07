@@ -114,6 +114,56 @@ pub async fn documentation(State(state): State<AppState>, cookies: Cookies) -> R
     )
 }
 
+// Stable URL for the collector embed script. Vite content-hashes the
+// `collector` entry, but every embed snippet in the wild (and the one shown
+// to users in the dashboard) hardcodes `/static/collector.js`. This handler
+// reads the Vite manifest, resolves the hashed asset, and serves it with a
+// short cache TTL so updates propagate without forcing consumers to re-embed.
+pub async fn collector_alias(State(state): State<AppState>) -> Response {
+    let dist_dir = state.config.root.join("dist");
+    let manifest_path = dist_dir.join(".vite/manifest.json");
+    let manifest_text = match std::fs::read_to_string(&manifest_path) {
+        Ok(t) => t,
+        Err(e) => {
+            tracing::error!("collector manifest read: {e}");
+            return (StatusCode::SERVICE_UNAVAILABLE, "collector unavailable").into_response();
+        }
+    };
+    let manifest: serde_json::Value = match serde_json::from_str(&manifest_text) {
+        Ok(v) => v,
+        Err(e) => {
+            tracing::error!("collector manifest parse: {e}");
+            return (StatusCode::SERVICE_UNAVAILABLE, "collector unavailable").into_response();
+        }
+    };
+    let rel = manifest
+        .get("static_src/collector/index.js")
+        .and_then(|c| c.get("file"))
+        .and_then(|v| v.as_str());
+    let Some(rel) = rel else {
+        tracing::error!("collector entry missing from manifest");
+        return (StatusCode::SERVICE_UNAVAILABLE, "collector unavailable").into_response();
+    };
+    let asset_path = dist_dir.join(rel);
+    let bytes = match std::fs::read(&asset_path) {
+        Ok(b) => b,
+        Err(e) => {
+            tracing::error!("collector read {asset_path:?}: {e}");
+            return (StatusCode::SERVICE_UNAVAILABLE, "collector unavailable").into_response();
+        }
+    };
+    let mut h = HeaderMap::new();
+    h.insert(
+        header::CONTENT_TYPE,
+        "application/javascript; charset=utf-8".parse().unwrap(),
+    );
+    h.insert(
+        header::CACHE_CONTROL,
+        "public, max-age=300, must-revalidate".parse().unwrap(),
+    );
+    (StatusCode::OK, h, bytes).into_response()
+}
+
 pub async fn favicon() -> Response {
     let mut h = HeaderMap::new();
     h.insert(header::CONTENT_TYPE, "image/svg+xml".parse().unwrap());

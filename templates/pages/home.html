@@ -124,9 +124,9 @@
         <div class="feature-label">geo + device</div>
         <div class="feature-title">Maps, browsers, platforms</div>
         <p class="feature-desc">
-          A US state choropleth, plus doughnut breakdowns for device,
-          browser, platform, and screen size. GeoIP runs against a local
-          MaxMind DB — IPs never leave your host.
+          A Natural Earth world map with click-through admin-1 drill-down,
+          plus doughnut breakdowns for device, browser, platform, and
+          screen size. GeoIP runs locally, IPs never leave your host.
         </p>
       </div>
     </div>
@@ -144,22 +144,25 @@
     <div class="col-12 col-md-6 col-lg-4">
       <div class="feature">
         <div class="feature-label">schema</div>
-        <div class="feature-title">JSON-first event store</div>
+        <div class="feature-title">Typed schema, JSON extras</div>
         <p class="feature-desc">
-          Every event lands in a single JSONField. New attributes need no
-          migrations — send them from the client and query them with Django
-          ORM lookups. Bot traffic is filtered before it ever hits the DB.
+          Hot fields (url, referrer, geo, UA, UTMs) live in typed columns
+          for fast queries. Anything custom lands in an <code>extra</code>
+          JSON column, no migration required, queryable with SQLite JSON1
+          (json_extract). Bot traffic is routed to a separate table so
+          human dashboards never have to filter it.
         </p>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
       <div class="feature">
-        <div class="feature-label">ownership</div>
-        <div class="feature-title">BSD, single container</div>
+        <div class="feature-label">stack</div>
+        <div class="feature-title">Built in Rust, ultralight</div>
         <p class="feature-desc">
-          Django + SQLite + one collector endpoint. Ships as a Docker image
-          behind your own reverse proxy. Your domain, your retention policy,
-          your compliance story. No vendor, no pixel, no lock-in.
+          A single statically linked Rust binary plus SQLite. Ultra
+          performant and very resource friendly, the whole stack runs as a
+          tiny Docker image behind your own reverse proxy. Your domain,
+          your retention policy. No vendor, no pixel, no lock-in.
         </p>
       </div>
     </div>

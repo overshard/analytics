@@ -3,7 +3,7 @@
   (function(m,e,t,r,i,c,s){m.collectorQueue = m.collectorQueue || r;
   m.collectorServer = c; m.collectorId = s; var script = e.createElement(t);
   script.src = c + i; e.head.appendChild(script);
-  })(window,document,'script',[],'{{ vite_asset("static_src/collector/index.js") }}',
+  })(window,document,'script',[],'/static/collector.js',
   '{{ collector_server }}','{{ collector_id }}');
 </script>
 {% endif %}

@@ -79,9 +79,10 @@
           </h2>
           <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#docsAccordion">
             <div class="accordion-body">
-              <p>Every event is stored as JSON in a <code>data</code> field.
-                Add whatever keys you need — no migration required, query with
-                Django ORM <code>data__user_segment</code> lookups later.</p>
+              <p>Every event is stored as JSON in an <code>extra</code>
+                column. Add whatever keys you need, no migration required,
+                query with SQLite JSON1
+                <code>json_extract(extra, '$.user_segment')</code> later.</p>
               <textarea class="codebox" rows="3" readonly><script>collectorQueue.push({event: 'admin_page_view', data: {user_segment: 'admins'}});</script></textarea>
             </div>
           </div>
