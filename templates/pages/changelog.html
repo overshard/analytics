@@ -35,6 +35,34 @@
     <div class="col-lg-8 offset-lg-2">
 
       <div class="changelog-entry">
+        <div class="changelog-date">2026-05-07</div>
+        <ul>
+          <li>Rewrite the entire backend from Django to a single statically-linked axum binary in Rust. sqlx + SQLite directly, minijinja for templates, no more Gunicorn or Uvicorn or separate scheduler process. The collector endpoint and embed snippet are unchanged, so existing tracked sites keep reporting without edits</li>
+          <li>Drop the multi-user accounts model. Auth is now a single operator password from <code>.env</code> with signed-cookie sessions and <code>SameSite=Strict</code> instead of CSRF tokens</li>
+          <li>Route bot traffic into a dedicated <code>bot_events</code> table at write time so human dashboard queries never have to filter it</li>
+          <li>Auto-download the GeoIP database and ua-parser regexes on boot when missing or stale; the server still boots and serves dashboards if either download fails</li>
+          <li>Add an <code>analytics migrate</code> subcommand that imports an existing Django SQLite into the new schema while preserving property UUIDs, so embedded snippets keep working after the cutover</li>
+          <li>Add an in-memory dashboard cache (5-minute TTL, keyed by property + date range + filter), bypassed for PDF and markdown exports so they always reflect the live data</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-29</div>
+        <ul>
+          <li>Replace the dashboard PDF report with a toner-friendly print template</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="changelog-date">2026-04-26</div>
+        <ul>
+          <li>Swap the US-only datamap for a Natural Earth world map with admin-1 drill-down on click</li>
+          <li>Switch IP geolocation from MaxMind to DB-IP City Lite (CC-BY-4.0, no signup, monthly auto-refresh)</li>
+          <li>Drop SQLite <code>mmap_size</code> to avoid a multi-process corruption hazard</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
         <div class="changelog-date">2026-04-18</div>
         <ul>
           <li>Replace the Playwright PDF pipeline with a headless Chromium subprocess wrapper and move the Docker base image to Alpine — smaller image, faster cold starts</li>
