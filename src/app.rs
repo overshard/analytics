@@ -8,6 +8,7 @@ use tower_http::services::ServeDir;
 use tower_http::set_header::SetResponseHeaderLayer;
 
 use crate::geoip::{self, GeoIp};
+use crate::pdf::PdfRenderer;
 use crate::routes;
 use crate::ua::{self, UaParser};
 use crate::{db, middleware, templates};
@@ -20,6 +21,7 @@ pub struct AppState {
     pub geoip: Arc<GeoIp>,
     pub ua: Arc<UaParser>,
     pub config: Arc<Config>,
+    pub pdf_renderer: Arc<PdfRenderer>,
 }
 
 #[derive(Debug, Clone)]
@@ -68,6 +70,8 @@ impl AppState {
         let manifest_path = root.join("dist/.vite/manifest.json");
         let env = Arc::new(templates::build_env(&templates_dir, &manifest_path));
 
+        let pdf_renderer = Arc::new(PdfRenderer::new(root.clone()));
+
         let config = Arc::new(Config {
             root,
             data_dir,
@@ -83,6 +87,7 @@ impl AppState {
             geoip,
             ua,
             config,
+            pdf_renderer,
         })
     }
 }

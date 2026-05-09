@@ -120,8 +120,45 @@ pub fn build_env(templates_dir: &Path, manifest_path: &Path) -> Environment<'sta
     env.add_function("url_for", url_for);
     env.add_filter("naturaltime", naturaltime_filter);
     env.add_filter("urlencode", urlencode_filter);
+    env.add_filter("typst_str", typst_str_filter);
+    env.add_filter("typst_md", typst_md_filter);
 
     env
+}
+
+/// Escape a value for inclusion inside a `"..."` Typst string literal.
+fn typst_str_filter(value: Value) -> Result<String, Error> {
+    let s = value.as_str().map(|s| s.to_string()).unwrap_or_else(|| value.to_string());
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            _ => out.push(c),
+        }
+    }
+    Ok(out)
+}
+
+/// Escape a value for inclusion inside a Typst content block `[...]`.
+/// Backslash-escapes the markup specials so a label like `*foo*` renders as
+/// literal text, not bolded.
+fn typst_md_filter(value: Value) -> Result<String, Error> {
+    let s = value.as_str().map(|s| s.to_string()).unwrap_or_else(|| value.to_string());
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '\\' | '[' | ']' | '*' | '_' | '`' | '#' | '$' | '<' | '@' | '~' => {
+                out.push('\\');
+                out.push(c);
+            }
+            _ => out.push(c),
+        }
+    }
+    Ok(out)
 }
 
 fn urlencode_filter(value: Value) -> Result<String, Error> {

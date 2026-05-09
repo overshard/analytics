@@ -309,9 +309,9 @@ pub async fn property(
             return (StatusCode::OK, h, body).into_response();
         }
         if fmt == "pdf" {
-            let html = match render_to_string(
+            let typst_source = match render_to_string(
                 &state,
-                "properties/property_print.html",
+                "properties/property_report.typ",
                 &path,
                 authed,
                 extra,
@@ -319,10 +319,9 @@ pub async fn property(
                 Ok(b) => b,
                 Err(resp) => return resp,
             };
-            let server_base = state.config.base_url.clone();
+            let renderer = state.pdf_renderer.clone();
             let pdf_res =
-                tokio::task::spawn_blocking(move || crate::pdf::html_to_pdf(&html, &server_base))
-                    .await;
+                tokio::task::spawn_blocking(move || renderer.render(typst_source)).await;
             match pdf_res {
                 Ok(Ok(bytes)) => {
                     let mut h = axum::http::HeaderMap::new();
