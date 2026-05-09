@@ -65,12 +65,20 @@ main { flex: 1; }
 }
 
 // ── Navbar ──
+// `min-height` (not `height`) so the bar grows when the mobile collapse opens.
+// A fixed `height: 52px` clipped the open menu — items rendered into the
+// space below the bar but later siblings (breadcrumb-bar, main) painted on
+// top of them, so they read as completely invisible on phones.
 
 .navbar {
-  height: 52px;
+  min-height: 52px;
   padding: 0;
   background: #090806 !important;
   border-bottom: 1px solid rgba(107, 158, 120, 0.06);
+
+  > .container {
+    min-height: 52px;
+  }
 
   .navbar-brand {
     display: flex;
@@ -89,6 +97,14 @@ main { flex: 1; }
       width: 6px; height: 6px; border-radius: 50%;
       background: $green;
     }
+  }
+
+  .navbar-toggler {
+    color: rgba(221, 215, 205, 0.7);
+    padding: 0.35rem 0.55rem;
+    font-size: 1rem;
+
+    &:focus { box-shadow: none; }
   }
 
   .nav-link {
@@ -119,6 +135,60 @@ main { flex: 1; }
 
     &:hover::after,
     &.active::after { transform: scaleX(1); }
+  }
+
+  // ── Mobile (under 768px): stacked drawer ──
+  // Bootstrap's collapse drops the menu to a second flex row inside the
+  // navbar at this breakpoint. Style it as a tray under the brand row:
+  // top-rule separator, full-width tap targets, left-accent for the active
+  // item (instead of the desktop underline, which reads weird on stacked
+  // left-aligned items).
+  @media (max-width: 767.98px) {
+    .navbar-collapse {
+      width: 100%;
+      border-top: 1px solid rgba(107, 158, 120, 0.08);
+      margin-top: 0.25rem;
+      padding: 0.4rem 0 0.6rem;
+    }
+
+    .navbar-nav {
+      margin-left: 0 !important;
+      width: 100%;
+    }
+
+    .nav-link {
+      padding: 0.65rem 0.75rem !important;
+      border-left: 2px solid transparent;
+      border-radius: 2px;
+      transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+
+      &::after { display: none; }
+
+      &:hover {
+        background: rgba(221, 215, 205, 0.04);
+        color: $white;
+      }
+
+      &.active {
+        color: $white;
+        border-left-color: $green;
+        background: rgba(107, 158, 120, 0.08);
+      }
+    }
+
+    .navbar-nav.ms-auto {
+      margin-top: 0.5rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid rgba(107, 158, 120, 0.06);
+
+      .nav-item { width: 100%; }
+
+      .btn,
+      form,
+      .d-inline { width: 100%; }
+
+      .btn { width: 100%; }
+    }
   }
 }
 
