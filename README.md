@@ -9,7 +9,7 @@ Self-hosted website analytics, single-operator. One axum binary with sqlx + SQLi
 - GeoIP enrichment (auto-downloads DB-IP City Lite) and UA parsing (auto-downloads ua-parser regexes)
 - Bot traffic routed to a separate table so human dashboards never have to filter it
 - Public/private toggle per property; signed-cookie auth for the operator
-- PDF and markdown export of any dashboard view (Chromium-rendered PDF)
+- PDF and markdown export of any dashboard view (PDF rendered in-process via embedded Typst, no chromium)
 - Single-binary deploy via `git push server master`
 
 ## System dependencies
@@ -22,7 +22,6 @@ Local dev needs all of these on your `PATH`:
 | `bun` | Frontend deps + Vite + map builder | 1.x |
 | `make` | Run the dev/build targets | any |
 | `pkg-config` + OpenSSL headers | Linked at build time on Linux | distro packages: `pkg-config`, `libssl-dev` (Debian/Ubuntu), `openssl-dev` (Alpine) |
-| `chromium` | PDF report export only; everything else works without it | any recent build |
 
 Install hints:
 
@@ -34,10 +33,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 curl -fsSL https://bun.sh/install | bash
 
 # System libs (Debian/Ubuntu)
-sudo apt install -y build-essential pkg-config libssl-dev chromium
+sudo apt install -y build-essential pkg-config libssl-dev
 
 # System libs (Alpine)
-sudo apk add musl-dev pkgconfig openssl-dev chromium
+sudo apk add musl-dev pkgconfig openssl-dev
 ```
 
 The Docker build (see `Dockerfile`) reproduces this on `rust:alpine` + `alpine:3.23`. If you only care about Docker, you do not need any of the above on the host.
@@ -73,7 +72,6 @@ All config comes from `.env` (loaded via `dotenvy`). The full set:
 | `ANALYTICS_COOKIE_SECRET` | no | 32+ bytes for signing the session cookie. Falls back to a SHA-512 of the password, so rotating the password invalidates sessions |
 | `ANALYTICS_DATA_DIR` | no (default `./data`) | Where the SQLite db, mmdb, and regexes live. Production sets this to `/data` |
 | `ANALYTICS_ROOT` | no | Override the project root (where `templates/`, `dist/`, `migrations/`, `static_maps/` are read from) |
-| `CHROMIUM_BIN` | no | Path to chromium for PDF export. Falls back to `PATH` lookup, then a `/opt/playwright-browsers/` glob |
 
 ## Make targets
 
@@ -106,7 +104,7 @@ Data persists to `/srv/data/analytics/` on the host (mounted into the container 
 - **Backend:** axum 0.8, sqlx 0.8 against SQLite (WAL, `synchronous=NORMAL`, `busy_timeout=5s`), tower-cookies for signed sessions
 - **Templates:** minijinja 2 with a Jinja2-faithful HTML formatter
 - **Frontend:** Vite 6, Bootstrap 5 SCSS, Chart.js, d3-geo + topojson, monaspace argon font (self-hosted via `@fontsource`)
-- **Enrichment:** maxminddb (GeoIP), uaparser (UA), moka (5-minute dashboard cache)
-- **PDF:** chrome-headless-shell via `--print-to-pdf` against a temp html file
+- **Enrichment:** maxminddb (GeoIP), uaparser (UA)
+- **PDF:** embedded Typst (`typst` + `typst-pdf` + `typst-kit`), no chromium subprocess
 
 See [CLAUDE.md](CLAUDE.md) for the full architecture rundown, route table, and data model.
