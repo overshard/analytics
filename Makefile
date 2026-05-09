@@ -28,9 +28,12 @@ maps: frontend/node_modules
 static_maps/world.json: frontend/node_modules
 	cd frontend && bun run build:maps
 
+# Nuke everything regenerable: build output, deps, and the local data dir
+# (sqlite + WAL/SHM, geoip mmdb, ua-parser regexes.yaml — all re-fetched on
+# next boot or via `make pull`). Also drops the natural-earth topojson, which
+# `make maps` (and `make run`) will rebuild.
 clean:
-	$(CARGO) clean
-	rm -rf dist frontend/node_modules data/db.sqlite3 data/db.mmdb
+	rm -rf target dist frontend/node_modules data static_maps
 
 push:
 	git remote | xargs -I R git push R master
