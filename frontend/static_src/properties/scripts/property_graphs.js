@@ -81,11 +81,41 @@ const doughnutOptions = {
   },
 };
 
+// Replace the canvas with a centered "no data yet" placeholder. Keeps the
+// card's visual footprint roughly the same so the layout doesn't reflow
+// when one chart has data and another doesn't.
+function renderEmpty(canvas) {
+  const placeholder = document.createElement("div");
+  placeholder.className = "chart-empty";
+  placeholder.textContent = "no data yet";
+  Object.assign(placeholder.style, {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    minHeight: "120px",
+    color: "rgba(132, 124, 114, 0.6)",
+    fontFamily: fontStack,
+    fontSize: "11px",
+    letterSpacing: "0.05em",
+    textTransform: "uppercase",
+  });
+  canvas.replaceWith(placeholder);
+}
+
+function hasData(rows) {
+  return rows.some((d) => (d.count || 0) > 0);
+}
+
 function renderDoughnut(canvasId, dataId) {
   document.addEventListener("DOMContentLoaded", function () {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     const raw = JSON.parse(document.getElementById(dataId).innerHTML);
+    if (!hasData(raw)) {
+      renderEmpty(canvas);
+      return;
+    }
     const data = padLabels(raw);
     new Chart(canvas.getContext("2d"), {
       type: "doughnut",
@@ -109,6 +139,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const canvas = document.getElementById("chart-total-events");
   if (!canvas) return;
   const data = JSON.parse(document.getElementById("chart-total-events-data").innerHTML);
+  if (!hasData(data)) {
+    renderEmpty(canvas);
+    return;
+  }
   const ctx = canvas.getContext("2d");
 
   // Build a subtle vertical gradient fill so the line chart feels lit from

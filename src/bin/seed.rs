@@ -1,11 +1,18 @@
 // Seeds a "Seed Test" property with realistic-looking fake events.
 //
 // Usage:
-//   cargo run --bin seed                  # 500 sessions, last 30 days
-//   cargo run --bin seed -- 2000 60       # 2000 sessions, last 60 days
+//   cargo run --bin seed                  # 6000 sessions, last 90 days
+//   cargo run --bin seed -- 12000 180     # 12000 sessions, last 180 days
+//
+// Sessions are timestamped with a gentle bias toward recent days so the
+// dashboard's default 28-day window shows a small positive delta vs. the
+// previous 28 days (rather than +1000% from comparing a full window to a
+// barely-populated one). At default 6000/90 the visible 28-day window
+// holds ~25k events and most metric-card deltas land in the ±20% range.
 //
 // Re-runs reuse the property and wipe its existing events first so the
-// dashboard URL stays stable.
+// dashboard URL stays stable. The property's `custom_cards` are also
+// rewritten on every run so a new seed always shows the demo cards.
 
 #[path = "../db.rs"]
 #[allow(dead_code)]
@@ -136,6 +143,15 @@ const UTM_SOURCES:   &[&str] = &["google", "twitter", "hn", "newsletter", "githu
 const UTM_MEDIUMS:   &[&str] = &["cpc", "social", "email", "referral", "organic"];
 const UTM_CAMPAIGNS: &[&str] = &["launch-2026", "spring-promo", "blog-feature", "rebrand", "retarget"];
 
+// Demo custom events emitted alongside page-views. Probabilities are
+// per-session — at the default 2000 sessions this yields ~100 signups,
+// ~40 checkouts, and ~160 CTA clicks, plenty to populate the cards.
+const CUSTOM_EVENTS: &[(&str, f64)] = &[
+    ("signup",            0.05),
+    ("checkout_success",  0.02),
+    ("signup_cta_click",  0.08),
+];
+
 fn weighted<'a, T>(rng: &mut impl Rng, items: &'a [T], weight: impl Fn(&T) -> u32) -> &'a T {
     let total: u32 = items.iter().map(&weight).sum();
     let mut pick = rng.gen_range(0..total);
@@ -154,8 +170,11 @@ async fn main() -> Result<()> {
     let _ = dotenvy::dotenv();
 
     let args: Vec<String> = std::env::args().collect();
-    let sessions: usize = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(500);
-    let days: i64       = args.get(2).and_then(|s| s.parse().ok()).unwrap_or(30);
+    // 6000 sessions over 90 days, biased toward recent. The default 28-day
+    // dashboard window catches ~34% of sessions (~2000 × ~12 events ≈ 25k).
+    // Override with `cargo run --bin seed -- <sessions> <days>`.
+    let sessions: usize = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(6000);
+    let days: i64       = args.get(2).and_then(|s| s.parse().ok()).unwrap_or(90);
 
     let data_dir = std::env::var("ANALYTICS_DATA_DIR")
         .map(PathBuf::from)
@@ -172,6 +191,22 @@ async fn main() -> Result<()> {
         .execute(&pool)
         .await?;
     sqlx::query("DELETE FROM bot_events WHERE property_id = ?")
+        .bind(&pid_bytes)
+        .execute(&pool)
+        .await?;
+
+    // Always rewrite custom_cards so re-seeding wipes prior state. The shape
+    // matches CustomCard in models.rs ([{event, value: bool}]).
+    let cards_json = serde_json::Value::Array(
+        CUSTOM_EVENTS
+            .iter()
+            .map(|(name, _)| serde_json::json!({ "event": name, "value": true }))
+            .collect(),
+    )
+    .to_string();
+    sqlx::query("UPDATE properties SET custom_cards = ?, updated_at = ? WHERE id = ?")
+        .bind(&cards_json)
+        .bind(Utc::now().timestamp_millis())
         .bind(&pid_bytes)
         .execute(&pool)
         .await?;
@@ -222,7 +257,15 @@ async fn generate(pool: &SqlitePool, pid: &[u8], sessions: usize, days: i64) -> 
         let referrer = if referrer_str.is_empty() { None } else { Some(referrer_str) };
 
         let user_id = format!("{}", rng.gen_range(100_000_000u64..999_999_999u64));
-        let session_start = now - rng.gen_range(0..window_ms);
+
+        // r.powf(1.15) gently biases toward 0, putting more sessions in the
+        // recent end of the window. Empirically yields ~10–15% growth comparing
+        // the most-recent 28 days to the previous 28 days, which matches what
+        // a real site looks like — instead of the +1000% you'd get from a
+        // uniform 30-day seed where the prev window is mostly empty.
+        let r: f64 = rng.gen();
+        let offset_ms = (r.powf(1.15) * window_ms as f64) as i64;
+        let session_start = now - offset_ms;
 
         let (sw, sh) = if agent.device == "Mobile" {
             *SCREENS_MOBILE.choose(&mut rng).unwrap()
@@ -266,6 +309,18 @@ async fn generate(pool: &SqlitePool, pid: &[u8], sessions: usize, days: i64) -> 
         insert_human(&mut tx, pid, "session_start", t, &user_id, url_pick.0, url_pick.1,
                      referrer, agent, sw, sh, geo, utm_source, utm_medium, utm_campaign, None).await?;
         total += 1;
+
+        // Emit demo custom events at their per-session probability. Bucketed
+        // a few seconds after the session start so they fall inside the
+        // active window and show up on the dashboard's custom-event cards.
+        for (name, prob) in CUSTOM_EVENTS {
+            if rng.gen_bool(*prob) {
+                let offset = rng.gen_range(1_000i64..30_000);
+                insert_human(&mut tx, pid, name, t + offset, &user_id, url_pick.0, url_pick.1,
+                             None, agent, sw, sh, geo, None, None, None, None).await?;
+                total += 1;
+            }
+        }
 
         for i in 0..page_count {
             let time_on_page = rng.gen_range(2_000i64..120_000i64);

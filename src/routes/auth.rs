@@ -1,19 +1,29 @@
 use axum::{
     extract::{Form, State},
     http::StatusCode,
-    response::{Html, IntoResponse, Redirect, Response},
+    response::{IntoResponse, Redirect, Response},
+    routing::{get, post},
+    Router,
 };
-use chrono::{Datelike, Utc};
+use chrono::Utc;
 use serde::Deserialize;
 use tower_cookies::{
     cookie::{time::Duration, SameSite},
     Cookie, Cookies,
 };
 
+use crate::render::render;
 use crate::AppState;
 
 const COOKIE_NAME: &str = "session";
+// 30 days. Matches the cookie max-age the browser stores.
 const SESSION_TTL_SECS: i64 = 30 * 24 * 60 * 60;
+
+pub fn router() -> Router<AppState> {
+    Router::new()
+        .route("/login", get(login_form).post(login_submit))
+        .route("/logout", post(logout))
+}
 
 #[derive(Debug, Deserialize)]
 pub struct LoginForm {
@@ -22,6 +32,8 @@ pub struct LoginForm {
     pub next: Option<String>,
 }
 
+/// Returns true if the request carries a valid, unexpired signed session
+/// cookie. Used by every auth-gated route module.
 pub fn is_authenticated(cookies: &Cookies, state: &AppState) -> bool {
     let signed = cookies.signed(&state.cookie_key);
     let Some(c) = signed.get(COOKIE_NAME) else { return false };
@@ -34,50 +46,28 @@ pub fn is_authenticated(cookies: &Cookies, state: &AppState) -> bool {
     Utc::now().timestamp() < exp
 }
 
-fn render_login(state: &AppState, error: Option<&str>) -> Result<Html<String>, StatusCode> {
-    let tmpl = state
-        .env
-        .get_template("registration/login.html")
-        .map_err(|e| {
-            tracing::error!("template registration/login.html: {e}");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
-    let body = tmpl
-        .render(minijinja::context! {
-            user => crate::templates::UserCtx::default(),
-            request => crate::templates::RequestCtx {
-                url: String::new(),
-                url_root: "/".to_string(),
-                base_url: String::new(),
-                path: "/login".to_string(),
-            },
-            now => minijinja::context! { year => chrono::Local::now().year() },
-            base_url => &state.config.base_url,
-            collector_id => state.config.proprium_id.map(|u| u.to_string()),
-            collector_server => &state.config.base_url,
-            messages => Vec::<()>::new(),
+fn render_login(state: &AppState, error: Option<&str>) -> Response {
+    render(
+        state,
+        "registration/login.html",
+        "/login",
+        false,
+        minijinja::context! {
             page => minijinja::context! {
                 title => "Log in",
                 description => "Log in to your dashboard.",
             },
             error => error,
             next => "/properties",
-        })
-        .map_err(|e| {
-            tracing::error!("render login: {e}");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
-    Ok(Html(body))
+        },
+    )
 }
 
 pub async fn login_form(State(state): State<AppState>, cookies: Cookies) -> Response {
     if is_authenticated(&cookies, &state) {
         return Redirect::to("/properties").into_response();
     }
-    match render_login(&state, None) {
-        Ok(html) => html.into_response(),
-        Err(e) => e.into_response(),
-    }
+    render_login(&state, None)
 }
 
 pub async fn login_submit(
@@ -86,10 +76,7 @@ pub async fn login_submit(
     Form(form): Form<LoginForm>,
 ) -> Response {
     if form.password != state.config.password {
-        let html = match render_login(&state, Some("Invalid password.")) {
-            Ok(h) => h,
-            Err(e) => return e.into_response(),
-        };
+        let html = render_login(&state, Some("Invalid password."));
         return (StatusCode::UNAUTHORIZED, html).into_response();
     }
     let exp = Utc::now().timestamp() + SESSION_TTL_SECS;

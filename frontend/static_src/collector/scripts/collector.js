@@ -101,7 +101,9 @@
 
   const query = parse_querystring(window.location.search.substring(1));
 
-  // send a page view event
+  // send a page view event. Screen dimensions are included here too (not just
+  // session_start) so the dashboard's screen-size breakdown populates for
+  // returning visitors whose collectoruserid cookie suppresses session_start.
   window.collectorQueue.push({
     collectorId: window.collectorId,
     event: "page_view",
@@ -113,6 +115,8 @@
       utm_source: query.utm_source,
       utm_medium: query.utm_medium,
       utm_campaign: query.utm_campaign,
+      screen_width: window.screen.width,
+      screen_height: window.screen.height,
     },
   });
 

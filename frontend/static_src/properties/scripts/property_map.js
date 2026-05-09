@@ -37,7 +37,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const state = { view: "world", country: null };
 
   fetch(WORLD_URL)
-    .then((r) => r.json())
+    .then((r) => {
+      if (!r.ok) throw new Error(`${WORLD_URL} returned HTTP ${r.status}`);
+      return r.json();
+    })
     .then((topo) => {
       worldData = topo;
       renderWorld();

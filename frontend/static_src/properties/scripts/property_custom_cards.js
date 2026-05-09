@@ -1,36 +1,26 @@
+// Persists which custom-event cards are enabled. The form's `action` attribute
+// holds the correct endpoint (`/properties/{id}/cards`); we use that directly
+// rather than reconstruct the URL from window.location.
 document.addEventListener("DOMContentLoaded", function () {
-  /**
-   * If any of the checkboxes in the form "#custom-card-form" are changed then
-   * get the data from the form in the format:
-   * [{"event": "<field_name>", "value": "<field_value>"}]
-   * and send it to the server in the body in JSON format to the URL:
-   * const url = new URL(window.location.href) + /custom-cards/
-   */
   const form = document.getElementById("custom-card-form");
-  if (!form) { return; }
+  if (!form) return;
+
   form.addEventListener("change", function () {
-    const formData = new FormData(form);
     const data = [];
-    for (const [key, value] of formData.entries()) {
-      if (key === "csrfmiddlewaretoken") {
-        continue;
-      }
-      data.push({
-        event: key,
-        value: value === "on" ? true : false,
-      });
+    for (const [key, value] of new FormData(form).entries()) {
+      data.push({ event: key, value: value === "on" });
     }
-    let url = new URL(window.location.href);
-    url = url.origin + url.pathname + "cards/";
-    fetch(url, {
+    fetch(form.action, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": form.querySelector("input[name=csrfmiddlewaretoken]").value,
-      },
-    }).then(function () {
-      window.location.reload();
-    });
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error(`${form.action} returned HTTP ${r.status}`);
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.error("custom cards save failed:", err);
+      });
   });
 });

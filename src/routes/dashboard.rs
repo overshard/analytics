@@ -1,197 +1,31 @@
 use axum::{
-    extract::{Form, Path as AxumPath, Query, State},
+    extract::{Path as AxumPath, Query, State},
     http::StatusCode,
-    response::{Html, IntoResponse, Json, Redirect, Response},
+    response::{IntoResponse, Redirect, Response},
+    routing::get,
+    Router,
 };
-use chrono::Datelike;
 use serde::Deserialize;
-use serde_json::json;
 use tower_cookies::Cookies;
 use uuid::Uuid;
 
-use crate::auth::is_authenticated;
-use crate::templates::{RequestCtx, UserCtx};
+use crate::render::{render, render_to_string};
+use crate::routes::auth::is_authenticated;
 use crate::AppState;
 
-fn now_year() -> i32 {
-    use chrono::Datelike;
-    chrono::Local::now().year()
-}
+// Milliseconds per day. Used to convert between the date-range query
+// parameter (in days) and the millisecond timestamps stored in events.
+const DAY_MS: i64 = 24 * 60 * 60 * 1000;
+// Default look-back when the request omits ?date_range= and gives a custom
+// start/end. Matches what the dashboard's date selector picks by default.
+const DEFAULT_DATE_RANGE_DAYS: i64 = 28;
 
-fn render(
-    state: &AppState,
-    template: &str,
-    extra: minijinja::Value,
-    authed: bool,
-    path: &str,
-) -> Result<Html<String>, StatusCode> {
-    let tmpl = state
-        .env
-        .get_template(template)
-        .map_err(|e| {
-            tracing::error!("template '{}': {}", template, e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
-    let request = RequestCtx {
-        url: String::new(),
-        url_root: "/".to_string(),
-        base_url: String::new(),
-        path: path.to_string(),
-    };
-    let body = tmpl
-        .render(minijinja::context! {
-            user => UserCtx { is_authenticated: authed },
-            request => &request,
-            now => minijinja::context! { year => now_year() },
-            base_url => &state.config.base_url,
-            collector_id => state.config.proprium_id.map(|u| u.to_string()),
-            collector_server => &state.config.base_url,
-            messages => Vec::<()>::new(),
-            ..extra
-        })
-        .map_err(|e| {
-            tracing::error!("render '{}': {}", template, e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
-    Ok(Html(body))
-}
-
-#[derive(Debug, Deserialize)]
-pub struct PropertiesQuery {
-    #[serde(default)]
-    pub q: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct PropertyCreateForm {
-    pub name: String,
-}
-
-pub async fn properties(
-    State(state): State<AppState>,
-    cookies: Cookies,
-    Query(q): Query<PropertiesQuery>,
-) -> Response {
-    if !is_authenticated(&cookies, &state) {
-        return Redirect::to("/login").into_response();
-    }
-    let search = q.q.as_deref().unwrap_or("").trim().to_string();
-
-    let rows = if search.is_empty() {
-        sqlx::query_as::<_, crate::models::PropertyRow>(
-            "SELECT id, name, custom_cards, is_protected, is_public, created_at, updated_at \
-             FROM properties ORDER BY is_protected DESC, created_at ASC",
-        )
-        .fetch_all(&state.pool)
-        .await
-    } else {
-        let like = format!("%{}%", search);
-        sqlx::query_as::<_, crate::models::PropertyRow>(
-            "SELECT id, name, custom_cards, is_protected, is_public, created_at, updated_at \
-             FROM properties WHERE name LIKE ? ORDER BY is_protected DESC, created_at ASC",
-        )
-        .bind(like)
-        .fetch_all(&state.pool)
-        .await
-    };
-
-    let rows = match rows {
-        Ok(r) => r,
-        Err(e) => {
-            tracing::error!("properties query: {e}");
-            return (StatusCode::INTERNAL_SERVER_ERROR, "db error").into_response();
-        }
-    };
-
-    let mut props = Vec::with_capacity(rows.len());
-    let mut total_events = 0i64;
-    let mut total_page_views = 0i64;
-    let mut total_sessions = 0i64;
-
-    for row in rows {
-        let id_bytes = row.id.clone();
-        let p = row.into_property();
-
-        let counts: (i64, i64, i64, i64) = sqlx::query_as(
-            "SELECT \
-                (SELECT COUNT(*) FROM events WHERE property_id = ?1) AS total, \
-                (SELECT COUNT(*) FROM events WHERE property_id = ?1 AND event = 'page_view') AS pv, \
-                (SELECT COUNT(*) FROM events WHERE property_id = ?1 AND event = 'session_start') AS ss, \
-                (SELECT COUNT(*) FROM events WHERE property_id = ?1 AND created_at >= ?2) AS active",
-        )
-        .bind(&id_bytes)
-        .bind(chrono::Utc::now().timestamp_millis() - 7 * 24 * 60 * 60 * 1000)
-        .fetch_one(&state.pool)
-        .await
-        .unwrap_or((0, 0, 0, 0));
-
-        total_events += counts.0;
-        total_page_views += counts.1;
-        total_sessions += counts.2;
-
-        props.push(json!({
-            "id": p.id.to_string(),
-            "name": p.name,
-            "is_protected": p.is_protected,
-            "is_public": p.is_public,
-            "is_active": counts.3 > 0,
-            "total_events": counts.0,
-            "total_page_views": counts.1,
-            "total_session_starts": counts.2,
-        }));
-    }
-
-    let totals = json!({
-        "properties": props.len(),
-        "events": total_events,
-        "page_views": total_page_views,
-        "sessions": total_sessions,
-    });
-
-    let extra = minijinja::context! {
-        page => minijinja::context! {
-            title => "Properties",
-            description => "Manage your properties.",
-        },
-        properties => &props,
-        totals => &totals,
-        q => &search,
-    };
-
-    render(&state, "properties/properties.html", extra, true, "/properties")
-        .map(IntoResponse::into_response)
-        .unwrap_or_else(|e| e.into_response())
-}
-
-pub async fn properties_create(
-    State(state): State<AppState>,
-    cookies: Cookies,
-    Form(form): Form<PropertyCreateForm>,
-) -> Response {
-    if !is_authenticated(&cookies, &state) {
-        return Redirect::to("/login").into_response();
-    }
-    let name = form.name.trim();
-    if name.is_empty() {
-        return Redirect::to("/properties").into_response();
-    }
-    let id = Uuid::new_v4();
-    let now = chrono::Utc::now().timestamp_millis();
-    let res = sqlx::query(
-        "INSERT INTO properties (id, name, custom_cards, is_protected, is_public, created_at, updated_at) \
-         VALUES (?, ?, '[]', 0, 0, ?, ?)",
-    )
-    .bind(id.as_bytes().to_vec())
-    .bind(name)
-    .bind(now)
-    .bind(now)
-    .execute(&state.pool)
-    .await;
-    if let Err(e) = res {
-        tracing::error!("create property: {e}");
-        return (StatusCode::INTERNAL_SERVER_ERROR, "db error").into_response();
-    }
-    Redirect::to("/properties").into_response()
+pub fn router() -> Router<AppState> {
+    // The dashboard's UUID path segment is a catch-all; merging this module
+    // last in app::router keeps named routes (e.g. /login, /properties)
+    // winning the match (axum prefers literal segments over path parameters
+    // at the same depth).
+    Router::new().route("/{property_id}", get(property))
 }
 
 #[derive(Debug, Deserialize)]
@@ -229,9 +63,15 @@ pub async fn property(
     use chrono::{Duration, Local};
 
     let today = Local::now().date_naive();
-    let default_start = today - Duration::days(28);
-    let date_start = q.date_start.clone().unwrap_or_else(|| default_start.format("%Y-%m-%d").to_string());
-    let date_end = q.date_end.clone().unwrap_or_else(|| today.format("%Y-%m-%d").to_string());
+    let default_start = today - Duration::days(DEFAULT_DATE_RANGE_DAYS);
+    let date_start = q
+        .date_start
+        .clone()
+        .unwrap_or_else(|| default_start.format("%Y-%m-%d").to_string());
+    let date_end = q
+        .date_end
+        .clone()
+        .unwrap_or_else(|| today.format("%Y-%m-%d").to_string());
 
     let start_ms = match crate::queries::parse_date_to_ms(&date_start, false) {
         Some(v) => v,
@@ -245,32 +85,17 @@ pub async fn property(
     let date_range: i64 = match q.date_range.as_deref() {
         Some("custom") | None => {
             // Days between start and end, inclusive of the end-of-day window.
-            let span = (end_ms - start_ms) / (24 * 60 * 60 * 1000);
+            let span = (end_ms - start_ms) / DAY_MS;
             span.max(1)
         }
-        Some(other) => other.parse::<i64>().unwrap_or(28),
+        Some(other) => other.parse::<i64>().unwrap_or(DEFAULT_DATE_RANGE_DAYS),
     };
 
-    let prev_start_ms = start_ms - date_range * 24 * 60 * 60 * 1000;
-    let prev_end_ms = end_ms - date_range * 24 * 60 * 60 * 1000;
+    let prev_start_ms = start_ms - date_range * DAY_MS;
+    let prev_end_ms = end_ms - date_range * DAY_MS;
     let filter_url = q.filter_url.as_deref().filter(|s| !s.is_empty());
 
-    // Cache key includes property updated_at so card/visibility edits bust it.
-    let cache_key = format!(
-        "dash:{}:{}:{}:{}:{}:{}",
-        p.id,
-        p.updated_at,
-        date_start,
-        date_end,
-        date_range,
-        filter_url.unwrap_or("")
-    );
-    let bypass_cache = q.report.is_some();
-    let cached = if bypass_cache { None } else { state.cache.get(&cache_key).await };
-
-    let dash_value: serde_json::Value = if let Some(arc) = cached {
-        (*arc).clone()
-    } else {
+    let dash_value: serde_json::Value = {
         let pool = &state.pool;
         let pid = &p.id;
 
@@ -317,7 +142,7 @@ pub async fn property(
         let bot_traffic =
             crate::queries::bot_traffic(pool, pid, start_ms, end_ms, 10).await;
 
-        let v = serde_json::json!({
+        serde_json::json!({
             "event_cards": all_cards,
             "custom_events": custom_events,
             "total_events_graph": total_events_graph,
@@ -335,14 +160,7 @@ pub async fn property(
             "session_starts_by_country": session_starts_by_country,
             "session_starts_by_country_region": session_starts_by_country_region,
             "bot_traffic": bot_traffic,
-        });
-        if !bypass_cache {
-            state
-                .cache
-                .insert(cache_key.clone(), std::sync::Arc::new(v.clone()))
-                .await;
-        }
-        v
+        })
     };
 
     let total_live_users = crate::queries::total_live_users(&state.pool, &p.id).await;
@@ -467,34 +285,17 @@ pub async fn property(
     // Report exports.
     if let Some(fmt) = q.report.as_deref() {
         let fmt = if fmt.is_empty() { "pdf" } else { fmt };
+        let path = format!("/{property_id}");
         if fmt == "md" {
-            let tmpl = match state.env.get_template("properties/property_report.md") {
-                Ok(t) => t,
-                Err(e) => {
-                    tracing::error!("template property_report.md: {e}");
-                    return (StatusCode::INTERNAL_SERVER_ERROR, "template error").into_response();
-                }
-            };
-            let body = match tmpl.render(minijinja::context! {
-                user => crate::templates::UserCtx { is_authenticated: authed },
-                request => crate::templates::RequestCtx {
-                    url: String::new(),
-                    url_root: "/".to_string(),
-                    base_url: String::new(),
-                    path: format!("/{property_id}"),
-                },
-                now => minijinja::context! { year => chrono::Local::now().year() },
-                base_url => &state.config.base_url,
-                collector_id => state.config.proprium_id.map(|u| u.to_string()),
-                collector_server => &state.config.base_url,
-                messages => Vec::<()>::new(),
-                ..extra
-            }) {
+            let body = match render_to_string(
+                &state,
+                "properties/property_report.md",
+                &path,
+                authed,
+                extra,
+            ) {
                 Ok(b) => b,
-                Err(e) => {
-                    tracing::error!("render md: {e}");
-                    return (StatusCode::INTERNAL_SERVER_ERROR, "render error").into_response();
-                }
+                Err(resp) => return resp,
             };
             let mut h = axum::http::HeaderMap::new();
             h.insert(
@@ -508,40 +309,20 @@ pub async fn property(
             return (StatusCode::OK, h, body).into_response();
         }
         if fmt == "pdf" {
-            let tmpl = match state.env.get_template("properties/property_print.html") {
-                Ok(t) => t,
-                Err(e) => {
-                    tracing::error!("template property_print.html: {e}");
-                    return (StatusCode::INTERNAL_SERVER_ERROR, "template error").into_response();
-                }
-            };
-            let html = match tmpl.render(minijinja::context! {
-                user => crate::templates::UserCtx { is_authenticated: authed },
-                request => crate::templates::RequestCtx {
-                    url: String::new(),
-                    url_root: "/".to_string(),
-                    base_url: String::new(),
-                    path: format!("/{property_id}"),
-                },
-                now => minijinja::context! { year => chrono::Local::now().year() },
-                base_url => &state.config.base_url,
-                collector_id => state.config.proprium_id.map(|u| u.to_string()),
-                collector_server => &state.config.base_url,
-                messages => Vec::<()>::new(),
-                ..extra
-            }) {
+            let html = match render_to_string(
+                &state,
+                "properties/property_print.html",
+                &path,
+                authed,
+                extra,
+            ) {
                 Ok(b) => b,
-                Err(e) => {
-                    tracing::error!("render print: {e}");
-                    return (StatusCode::INTERNAL_SERVER_ERROR, "render error").into_response();
-                }
+                Err(resp) => return resp,
             };
-            let server_base = if state.config.base_url.is_empty() {
-                String::new()
-            } else {
-                state.config.base_url.clone()
-            };
-            let pdf_res = tokio::task::spawn_blocking(move || crate::pdf::html_to_pdf(&html, &server_base)).await;
+            let server_base = state.config.base_url.clone();
+            let pdf_res =
+                tokio::task::spawn_blocking(move || crate::pdf::html_to_pdf(&html, &server_base))
+                    .await;
             match pdf_res {
                 Ok(Ok(bytes)) => {
                     let mut h = axum::http::HeaderMap::new();
@@ -567,15 +348,15 @@ pub async fn property(
     render(
         &state,
         "properties/property.html",
-        extra,
-        authed,
         &format!("/{property_id}"),
+        authed,
+        extra,
     )
-    .map(IntoResponse::into_response)
-    .unwrap_or_else(|e| e.into_response())
 }
 
-/// Toner-friendly SVG polyline points for the print template.
+/// Toner-friendly SVG polyline points for the print template. `width`,
+/// `height`, and `padding` match the SVG viewBox in
+/// templates/properties/property_print.html — change one and change the other.
 fn build_chart_polyline(points: &[serde_json::Value]) -> String {
     if points.is_empty() {
         return String::new();
@@ -607,59 +388,3 @@ fn build_chart_polyline(points: &[serde_json::Value]) -> String {
         .collect::<Vec<_>>()
         .join(" ")
 }
-
-pub async fn property_delete(
-    State(state): State<AppState>,
-    AxumPath(property_id): AxumPath<Uuid>,
-    cookies: Cookies,
-) -> Response {
-    if !is_authenticated(&cookies, &state) {
-        return Redirect::to("/login").into_response();
-    }
-    let _ = sqlx::query("DELETE FROM properties WHERE id = ? AND is_protected = 0")
-        .bind(property_id.as_bytes().to_vec())
-        .execute(&state.pool)
-        .await;
-    Redirect::to("/properties").into_response()
-}
-
-pub async fn property_cards(
-    State(state): State<AppState>,
-    AxumPath(property_id): AxumPath<Uuid>,
-    cookies: Cookies,
-    body: String,
-) -> Response {
-    if !is_authenticated(&cookies, &state) {
-        return Redirect::to("/login").into_response();
-    }
-    // Body is the raw JSON array of {event,value} objects.
-    let parsed: serde_json::Value =
-        serde_json::from_str(&body).unwrap_or(serde_json::json!([]));
-    let payload = parsed.to_string();
-    let now = chrono::Utc::now().timestamp_millis();
-    let _ = sqlx::query("UPDATE properties SET custom_cards = ?, updated_at = ? WHERE id = ?")
-        .bind(payload)
-        .bind(now)
-        .bind(property_id.as_bytes().to_vec())
-        .execute(&state.pool)
-        .await;
-    Json(serde_json::json!({"success": true})).into_response()
-}
-
-pub async fn property_public_toggle(
-    State(state): State<AppState>,
-    AxumPath(property_id): AxumPath<Uuid>,
-    cookies: Cookies,
-) -> Response {
-    if !is_authenticated(&cookies, &state) {
-        return Redirect::to("/login").into_response();
-    }
-    let now = chrono::Utc::now().timestamp_millis();
-    let _ = sqlx::query("UPDATE properties SET is_public = 1 - is_public, updated_at = ? WHERE id = ?")
-        .bind(now)
-        .bind(property_id.as_bytes().to_vec())
-        .execute(&state.pool)
-        .await;
-    Json(serde_json::json!({"success": true})).into_response()
-}
-

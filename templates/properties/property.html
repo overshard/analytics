@@ -142,15 +142,17 @@
     {% for c in event_cards %}
     <div class="col-6 col-md-4 col-lg-3">
       <div class="metric-tile">
-        {% if c.percent_change == 0 %}
-        <span class="metric-delta is-flat" title="No change vs previous period">·</span>
-        {% elif c.percent_change < 0 %}
-        <span class="metric-delta is-down">{{ c.percent_change }}%</span>
-        {% else %}
-        <span class="metric-delta is-up">+{{ c.percent_change }}%</span>
-        {% endif %}
-        <div class="metric-label text-truncate" {% if c.help_text %}data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ c.help_text }}"{% endif %}>
-          {{ c.name }}
+        <div class="metric-header">
+          <div class="metric-label text-truncate" {% if c.help_text %}data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ c.help_text }}"{% endif %}>
+            {{ c.name }}
+          </div>
+          {% if c.percent_change == 0 %}
+          <span class="metric-delta is-flat" title="No change vs previous period">·</span>
+          {% elif c.percent_change < 0 %}
+          <span class="metric-delta is-down">{{ c.percent_change }}%</span>
+          {% else %}
+          <span class="metric-delta is-up">+{{ c.percent_change }}%</span>
+          {% endif %}
         </div>
         <div class="metric-value">{{ c.value }}</div>
       </div>

@@ -2,13 +2,40 @@ use axum::{
     extract::State,
     http::{header, HeaderMap, StatusCode},
     response::{IntoResponse, Response},
+    routing::{get, post},
+    Router,
 };
 use serde::Deserialize;
 use serde_json::Value;
 use std::net::IpAddr;
+use tower_http::cors::{Any, CorsLayer};
 use uuid::Uuid;
 
 use crate::AppState;
+
+pub fn router() -> Router<AppState> {
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
+    let collect_routes = Router::new()
+        .route("/collect", post(collect).options(options))
+        // /collect/ is a compatibility alias for embeds that hardcoded the
+        // trailing slash. Keep it pointing at the same handlers.
+        .route("/collect/", post(collect).options(options))
+        .layer(cors);
+
+    let alias_routes = Router::new()
+        // Stable URL for the collector embed script. Vite content-hashes the
+        // entry, but every embed snippet in the wild hardcodes
+        // /static/collector.js. This aliased handler reads the manifest and
+        // serves the hashed asset by that stable path. CORS does not apply
+        // here; same-origin browsers fetch the script directly.
+        .route("/static/collector.js", get(collector_alias));
+
+    Router::new().merge(collect_routes).merge(alias_routes)
+}
 
 #[derive(Debug, Deserialize)]
 struct CollectBody {
@@ -246,6 +273,53 @@ pub async fn collect(
     .await;
 
     cors_204(&headers)
+}
+
+pub async fn collector_alias(State(state): State<AppState>) -> Response {
+    let dist_dir = state.config.root.join("dist");
+    let manifest_path = dist_dir.join(".vite/manifest.json");
+    let manifest_text = match std::fs::read_to_string(&manifest_path) {
+        Ok(t) => t,
+        Err(e) => {
+            tracing::error!("collector manifest read: {e}");
+            return (StatusCode::SERVICE_UNAVAILABLE, "collector unavailable").into_response();
+        }
+    };
+    let manifest: serde_json::Value = match serde_json::from_str(&manifest_text) {
+        Ok(v) => v,
+        Err(e) => {
+            tracing::error!("collector manifest parse: {e}");
+            return (StatusCode::SERVICE_UNAVAILABLE, "collector unavailable").into_response();
+        }
+    };
+    let rel = manifest
+        .get("static_src/collector/index.js")
+        .and_then(|c| c.get("file"))
+        .and_then(|v| v.as_str());
+    let Some(rel) = rel else {
+        tracing::error!("collector entry missing from manifest");
+        return (StatusCode::SERVICE_UNAVAILABLE, "collector unavailable").into_response();
+    };
+    let asset_path = dist_dir.join(rel);
+    let bytes = match std::fs::read(&asset_path) {
+        Ok(b) => b,
+        Err(e) => {
+            tracing::error!("collector read {asset_path:?}: {e}");
+            return (StatusCode::SERVICE_UNAVAILABLE, "collector unavailable").into_response();
+        }
+    };
+    let mut h = HeaderMap::new();
+    h.insert(
+        header::CONTENT_TYPE,
+        "application/javascript; charset=utf-8".parse().unwrap(),
+    );
+    // 5 minutes. Short enough that an asset re-hash propagates within a deploy
+    // window, long enough to absorb burst traffic from the embed snippet.
+    h.insert(
+        header::CACHE_CONTROL,
+        "public, max-age=300, must-revalidate".parse().unwrap(),
+    );
+    (StatusCode::OK, h, bytes).into_response()
 }
 
 fn cors_204(req_headers: &HeaderMap) -> Response {

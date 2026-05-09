@@ -244,9 +244,19 @@ main { flex: 1; }
   height: 100%;
   display: flex;
   flex-direction: column;
-  position: relative;
+
+  // Label + delta chip share the top row; label flex-grows and truncates,
+  // chip stays its natural width on the right.
+  .metric-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 1.3rem;
+  }
 
   .metric-label {
+    flex: 1;
+    min-width: 0;
     font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.12em;
@@ -272,11 +282,8 @@ main { flex: 1; }
     letter-spacing: 0.02em;
   }
 
-  // Small delta badge pinned in the top-right
   .metric-delta {
-    position: absolute;
-    top: 0.55rem;
-    right: 0.7rem;
+    flex-shrink: 0;
     font-family: $font-family-monospace;
     font-size: 0.75rem;
     font-weight: 600;

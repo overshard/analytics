@@ -445,19 +445,31 @@ async fn top_by_column(
     column: &str,
     event: Option<&str>,
     limit: i64,
+    distinct_users: bool,
 ) -> Vec<LabelCount> {
+    // For user-property breakdowns (device/browser/platform), count one row
+    // per anonymous user_id. For everything else, count raw events.
+    let count_expr = if distinct_users {
+        "COUNT(DISTINCT user_id)"
+    } else {
+        "COUNT(*)"
+    };
     let mut sql = format!(
-        "SELECT {col}, COUNT(*) FROM events \
+        "SELECT {col}, {cnt} FROM events \
          WHERE property_id = ? AND created_at >= ? AND created_at <= ? \
                AND {col} IS NOT NULL AND {col} != ''",
-        col = column
+        col = column,
+        cnt = count_expr,
     );
+    if distinct_users {
+        sql.push_str(" AND user_id IS NOT NULL");
+    }
     if event.is_some() {
         sql.push_str(" AND event = ?");
     }
     let (extra_sql, extra_bind) = filter_clause(filter_url);
     sql.push_str(extra_sql);
-    sql.push_str(&format!(" GROUP BY {col} ORDER BY COUNT(*) DESC LIMIT ?", col = column));
+    sql.push_str(&format!(" GROUP BY {col} ORDER BY {cnt} DESC LIMIT ?", col = column, cnt = count_expr));
 
     let mut q = sqlx::query_as::<_, (String, i64)>(&sql)
         .bind(property_id.as_bytes().to_vec())
@@ -484,15 +496,20 @@ pub async fn events_by_screen_size(
     filter_url: Option<&str>,
     limit: i64,
 ) -> Vec<LabelCount> {
+    // Counts unique anonymous users (cookie-based user_id) per screen size,
+    // not raw events. Filtered to page_view so returning visitors are counted
+    // — the collectoruserid cookie suppresses session_start after the first
+    // visit, but page_view always fires.
     let mut sql = String::from(
-        "SELECT screen_width, screen_height, COUNT(*) FROM events \
+        "SELECT screen_width, screen_height, COUNT(DISTINCT user_id) FROM events \
          WHERE property_id = ? AND created_at >= ? AND created_at <= ? \
-               AND event = 'session_start' \
-               AND screen_width IS NOT NULL",
+               AND event = 'page_view' \
+               AND screen_width IS NOT NULL \
+               AND user_id IS NOT NULL",
     );
     let (extra_sql, extra_bind) = filter_clause(filter_url);
     sql.push_str(extra_sql);
-    sql.push_str(" GROUP BY screen_width, screen_height ORDER BY COUNT(*) DESC LIMIT ?");
+    sql.push_str(" GROUP BY screen_width, screen_height ORDER BY COUNT(DISTINCT user_id) DESC LIMIT ?");
     let mut q = sqlx::query_as::<_, (Option<i64>, Option<i64>, i64)>(&sql)
         .bind(property_id.as_bytes().to_vec())
         .bind(start_ms)
@@ -512,23 +529,26 @@ pub async fn events_by_screen_size(
         .collect()
 }
 
+// Device/browser/platform breakdowns filter on page_view (not session_start)
+// so they populate for returning visitors too. Server-side UA parsing fills
+// these columns on every event, so the data is always present.
 pub async fn events_by_device(pool: &SqlitePool, property_id: &Uuid, start_ms: i64, end_ms: i64, filter_url: Option<&str>, limit: i64) -> Vec<LabelCount> {
-    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "device", Some("session_start"), limit).await
+    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "device", Some("page_view"), limit, true).await
 }
 pub async fn events_by_browser(pool: &SqlitePool, property_id: &Uuid, start_ms: i64, end_ms: i64, filter_url: Option<&str>, limit: i64) -> Vec<LabelCount> {
-    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "browser", Some("session_start"), limit).await
+    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "browser", Some("page_view"), limit, true).await
 }
 pub async fn events_by_platform(pool: &SqlitePool, property_id: &Uuid, start_ms: i64, end_ms: i64, filter_url: Option<&str>, limit: i64) -> Vec<LabelCount> {
-    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "platform", Some("session_start"), limit).await
+    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "platform", Some("page_view"), limit, true).await
 }
 pub async fn events_by_page_url(pool: &SqlitePool, property_id: &Uuid, start_ms: i64, end_ms: i64, filter_url: Option<&str>, limit: i64) -> Vec<LabelCount> {
-    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "url", None, limit).await
+    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "url", None, limit, false).await
 }
 pub async fn page_views_by_page_url(pool: &SqlitePool, property_id: &Uuid, start_ms: i64, end_ms: i64, filter_url: Option<&str>, limit: i64) -> Vec<LabelCount> {
-    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "url", Some("page_view"), limit).await
+    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "url", Some("page_view"), limit, false).await
 }
 pub async fn session_starts_by_referrer(pool: &SqlitePool, property_id: &Uuid, start_ms: i64, end_ms: i64, filter_url: Option<&str>, limit: i64) -> Vec<LabelCount> {
-    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "referrer", Some("session_start"), limit).await
+    top_by_column(pool, property_id, start_ms, end_ms, filter_url, "referrer", Some("session_start"), limit, false).await
 }
 
 pub async fn page_views_by_utm(
@@ -548,7 +568,7 @@ pub async fn page_views_by_utm(
         "content" => "utm_content",
         _ => return Vec::new(),
     };
-    top_by_column(pool, property_id, start_ms, end_ms, filter_url, column, Some("page_view"), limit).await
+    top_by_column(pool, property_id, start_ms, end_ms, filter_url, column, Some("page_view"), limit, false).await
 }
 
 pub async fn events_by_custom_event(

@@ -5,13 +5,13 @@ PORT  ?= 8000
 .PHONY: run build start clean push pull maps seed migrate
 
 # Dev: Vite watch + cargo run concurrently. Both die on Ctrl+C.
-run: frontend/node_modules dist/.vite/manifest.json
+run: frontend/node_modules dist/.vite/manifest.json static_maps/world.json
 	@trap 'kill 0' EXIT INT TERM; \
 	(cd frontend && bun run dev) & \
 	PORT=$(PORT) $(CARGO) run
 
 # Production build (Vite assets + release binary)
-build: frontend/node_modules maps
+build: frontend/node_modules static_maps/world.json
 	cd frontend && bun run build
 	$(CARGO) build --release
 
@@ -19,8 +19,13 @@ build: frontend/node_modules maps
 start:
 	PORT=$(PORT) ./target/release/analytics
 
-# Build the per-country topojson static_maps/ from natural earth
+# Force-rebuild the per-country topojson from natural earth.
 maps: frontend/node_modules
+	cd frontend && bun run build:maps
+
+# Lazy build for `make run`: only fetches maps if world.json is missing.
+# Use `make maps` to force a refresh.
+static_maps/world.json: frontend/node_modules
 	cd frontend && bun run build:maps
 
 clean:
