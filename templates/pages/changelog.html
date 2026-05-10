@@ -35,14 +35,26 @@
     <div class="col-lg-8 offset-lg-2">
 
       <div class="changelog-entry">
+        <div class="changelog-date">2026-05-09</div>
+        <ul>
+          <li>Replace the dashboard PDF pipeline with the embedded Typst compiler (<code>typst</code> + <code>typst-pdf</code> + <code>typst-kit</code>). No chromium subprocess, no temp files; fonts are searched once at startup and shared across renders</li>
+          <li>Restructure the axum server into per-feature route modules under <code>src/routes/</code>, with <code>AppState</code>/router assembly split into <code>src/app.rs</code> and the standard render context centralized in <code>src/render.rs</code></li>
+          <li>Fix several dashboard issues exposed by the restructure (404 handling, breadcrumb edge cases)</li>
+          <li>Expand <code>make clean</code> to wipe <code>target/</code>, frontend deps, runtime data, and the cached topojson</li>
+          <li>Fix the mobile nav menu being clipped by the fixed navbar height</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
         <div class="changelog-date">2026-05-07</div>
         <ul>
           <li>Rewrite the entire backend from Django to a single statically-linked axum binary in Rust. sqlx + SQLite directly, minijinja for templates, no more Gunicorn or Uvicorn or separate scheduler process. The collector endpoint and embed snippet are unchanged, so existing tracked sites keep reporting without edits</li>
           <li>Drop the multi-user accounts model. Auth is now a single operator password from <code>.env</code> with signed-cookie sessions and <code>SameSite=Strict</code> instead of CSRF tokens</li>
           <li>Route bot traffic into a dedicated <code>bot_events</code> table at write time so human dashboard queries never have to filter it</li>
-          <li>Auto-download the GeoIP database and ua-parser regexes on boot when missing or stale; the server still boots and serves dashboards if either download fails</li>
+          <li>Auto-download the GeoIP database and ua-parser regexes on boot when missing or stale. The server still boots and serves dashboards if either download fails</li>
           <li>Add an <code>analytics migrate</code> subcommand that imports an existing Django SQLite into the new schema while preserving property UUIDs, so embedded snippets keep working after the cutover</li>
           <li>Add an in-memory dashboard cache (5-minute TTL, keyed by property + date range + filter), bypassed for PDF and markdown exports so they always reflect the live data</li>
+          <li>Add a stable <code>/static/collector.js</code> route so embed snippets don't break when Vite re-hashes the collector bundle</li>
         </ul>
       </div>
 
@@ -65,7 +77,7 @@
       <div class="changelog-entry">
         <div class="changelog-date">2026-04-18</div>
         <ul>
-          <li>Replace the Playwright PDF pipeline with a headless Chromium subprocess wrapper and move the Docker base image to Alpine — smaller image, faster cold starts</li>
+          <li>Replace the Playwright PDF pipeline with a headless Chromium subprocess wrapper and move the Docker base image to Alpine: smaller image, faster cold starts</li>
           <li>Centralize SQLite settings and expand PRAGMA tuning (WAL, synchronous, cache, mmap, temp_store)</li>
           <li>Speed up the property dashboard, split the property view, and surface bot traffic separately</li>
           <li>Swap the Exim relay for a Python direct-to-MX email backend</li>
@@ -75,10 +87,10 @@
       <div class="changelog-entry">
         <div class="changelog-date">2026-04-17</div>
         <ul>
-          <li>Redesign the whole dashboard with a warm-earth palette — mossy forest green and amber on deep charcoal, Monaspace Argon throughout, aligned to the <a href="https://status.bythewood.me/">status</a> app</li>
+          <li>Redesign the whole dashboard with a warm-earth palette: mossy forest green and amber on deep charcoal, Monaspace Argon throughout, aligned to the <a href="https://status.bythewood.me/">status</a> app</li>
           <li>Rework the property dashboard with metric tiles, period-over-period deltas, chart panels, and compact ranked top-lists instead of Bootstrap list groups</li>
           <li>Rework the properties listing page with search, live-signal tiles, and a dense row layout</li>
-          <li>Swap the 📊 emoji favicon for a themed SVG bar-chart mark matching the in-app logo</li>
+          <li>Swap the bar-chart emoji favicon for a themed SVG mark matching the in-app logo</li>
           <li>Add a <code>/documentation</code> link into the main nav so the collector snippet docs are easier to find</li>
           <li>Restyle the collector-tag modal and accordion docs as terminal-style code blocks</li>
         </ul>
@@ -105,7 +117,7 @@
       <div class="changelog-entry">
         <div class="changelog-date">2022-07-26</div>
         <ul>
-          <li>Add URL property filtering — click any top-page row to scope the whole dashboard</li>
+          <li>Add URL property filtering: click any top-page row to scope the whole dashboard</li>
         </ul>
       </div>
 
@@ -119,14 +131,14 @@
       <div class="changelog-entry">
         <div class="changelog-date">2022-06-18</div>
         <ul>
-          <li>Rename all "tracking" terminology to "collecting" — we're not spyware</li>
+          <li>Rename all "tracking" terminology to "collecting" (we're not spyware)</li>
         </ul>
       </div>
 
       <div class="changelog-entry">
         <div class="changelog-date">2022-06-05</div>
         <ul>
-          <li>Add PDF report generator — hit <code>?report</code> on any property page to export</li>
+          <li>Add PDF report generator: hit <code>?report</code> on any property page to export</li>
         </ul>
       </div>
 
@@ -146,7 +158,7 @@
           <li>Add UTM query-param collection (source, medium, campaign)</li>
           <li>Add platform doughnut graph</li>
           <li>Add date-range selection with presets and a custom picker</li>
-          <li>Add custom event cards — pin any custom event as a headline metric</li>
+          <li>Add custom event cards: pin any custom event as a headline metric</li>
         </ul>
       </div>
 

@@ -30,7 +30,7 @@
           Page views, clicks, scrolls, sessions, and custom events. GeoIP maps,
           UTM attribution, device and browser breakdowns, period-over-period
           comparisons, and PDF reports. Collected through a single POST
-          endpoint you control — no third-party script, no hidden trackers,
+          endpoint you control. No third-party script, no hidden trackers,
           no data leaving your infrastructure.
         </p>
         <div class="hero-ctas">
@@ -89,7 +89,6 @@
 <section class="container my-5 py-4">
   <div class="row mb-4">
     <div class="col-12">
-      <div class="section-label mb-2">capabilities</div>
       <h2 class="h3 text-white fw-bolder" style="letter-spacing: -0.01em;">
         Everything your marketing and product team needs in one dashboard.
       </h2>
@@ -101,10 +100,9 @@
         <div class="feature-label">collection</div>
         <div class="feature-title">One-line site tag</div>
         <p class="feature-desc">
-          Drop a tiny async script in your <code>&lt;head&gt;</code>. It fires
-          session_start, page_view, click, scroll, and page_leave events to
-          a single POST endpoint. Custom events push onto the queue from any
-          frontend code.
+          Drop a tiny async script in your <code>&lt;head&gt;</code>. It posts
+          session_start, page_view, click, scroll, and page_leave to one
+          endpoint. Custom events queue from any frontend code.
         </p>
       </div>
     </div>
@@ -113,8 +111,8 @@
         <div class="feature-label">attribution</div>
         <div class="feature-title">UTM + referrer tracking</div>
         <p class="feature-desc">
-          Break traffic down by source, medium, and campaign. Top referrers,
-          top pages, and top custom events are ranked in the dashboard with
+          Slice traffic by source, medium, and campaign. Top referrers,
+          pages, and custom events rank in the dashboard with
           period-over-period deltas baked in.
         </p>
       </div>
@@ -124,9 +122,9 @@
         <div class="feature-label">geo + device</div>
         <div class="feature-title">Maps, browsers, platforms</div>
         <p class="feature-desc">
-          A Natural Earth world map with click-through admin-1 drill-down,
-          plus doughnut breakdowns for device, browser, platform, and
-          screen size. GeoIP runs locally, IPs never leave your host.
+          A Natural Earth world map with click-through admin-1 drill-down.
+          Doughnut breakdowns for device, browser, platform, and screen
+          size. GeoIP runs locally, IPs never leave your host.
         </p>
       </div>
     </div>
@@ -135,9 +133,9 @@
         <div class="feature-label">reports</div>
         <div class="feature-title">Dashboard + PDF export</div>
         <p class="feature-desc">
-          Flip any date range to a headless-Chromium PDF with one click.
-          Custom cards let you pin bespoke metrics. Share a property publicly
-          with one toggle — no login required for viewers.
+          Flip any date range to PDF or markdown with one click, rendered
+          in-process via embedded Typst (no chromium subprocess). Custom
+          cards pin bespoke metrics. A public toggle shares without a login.
         </p>
       </div>
     </div>
@@ -147,10 +145,10 @@
         <div class="feature-title">Typed schema, JSON extras</div>
         <p class="feature-desc">
           Hot fields (url, referrer, geo, UA, UTMs) live in typed columns
-          for fast queries. Anything custom lands in an <code>extra</code>
-          JSON column, no migration required, queryable with SQLite JSON1
-          (json_extract). Bot traffic is routed to a separate table so
-          human dashboards never have to filter it.
+          for fast queries. Custom keys land in an <code>extra</code> JSON
+          column, queryable via SQLite JSON1 (json_extract). Bot traffic
+          routes to a separate table at write time so human dashboards
+          never have to filter it.
         </p>
       </div>
     </div>
@@ -159,9 +157,8 @@
         <div class="feature-label">stack</div>
         <div class="feature-title">Built in Rust, ultralight</div>
         <p class="feature-desc">
-          A single statically linked Rust binary plus SQLite. Ultra
-          performant and very resource friendly, the whole stack runs as a
-          tiny Docker image behind your own reverse proxy. Your domain,
+          One statically linked Rust binary plus SQLite, shipped as a tiny
+          Alpine Docker image behind your own reverse proxy. Your domain,
           your retention policy. No vendor, no pixel, no lock-in.
         </p>
       </div>
