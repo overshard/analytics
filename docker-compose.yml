@@ -4,10 +4,7 @@ services:
     build: .
     init: true
     env_file: .env
-    ports:
-      - "127.0.0.1:${PORT}:${PORT}"
     environment:
-      PORT: ${PORT}
       ANALYTICS_DATA_DIR: /data
     volumes:
       - /srv/data/analytics:/data
