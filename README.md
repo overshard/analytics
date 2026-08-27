@@ -1,5 +1,12 @@
 # Analytics
 
+> **Archived and no longer maintained.**
+> This is the Django implementation, renamed from `analytics` to `analytics-django` and kept as a
+> read-only snapshot. It receives no further updates, fixes, or security patches.
+> The Rust implementation that replaced it lives in `analytics-rust`, also archived.
+> Use this as a reference, not as running software.
+
+
 A self-hostable analytics service with a straightforward API to collect events
 from any source.
 

@@ -28,7 +28,7 @@ from django.core.management.base import BaseCommand
 
 
 URL_TEMPLATE = "https://download.db-ip.com/free/dbip-city-lite-{year}-{month:02d}.mmdb.gz"
-USER_AGENT = "analytics-refresh-geoip/1.0 (+https://github.com/overshard/analytics)"
+USER_AGENT = "analytics-refresh-geoip/1.0 (+https://github.com/overshard/analytics-django)"
 MAX_AGE_DAYS = 30
 
 
