@@ -1,11 +1,6 @@
+> **Archived.** This project is no longer in use and no longer maintained.
+
 # Analytics
-
-> **Archived and no longer maintained.**
-> This is the Django implementation, renamed from `analytics` to `analytics-django` and kept as a
-> read-only snapshot. It receives no further updates, fixes, or security patches.
-> The Rust implementation that replaced it lives in `analytics-rust`, also archived.
-> Use this as a reference, not as running software.
-
 
 A self-hostable analytics service with a straightforward API to collect events
 from any source.
@@ -170,7 +165,7 @@ Server:
 
 Local:
 
-    git clone git@github.com:overshard/analytics.git && cd analytics
+    git clone git@github.com:overshard/analytics-django.git && cd analytics-django
     git remote remove origin && git remote add origin root@analytics.bythewood.me:/srv/git/analytics.git
     git push --set-upstream origin master
 
